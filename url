@@ -1,0 +1,14 @@
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Include CSS file -->
+    <link rel="stylesheet" href="<spring:url value='/css/yourStylesheet.css' />" type="text/css" />
+</head>
+<body>
+    <!-- Your page content -->
+
+    <!-- Include JS file -->
+    <script src="<spring:url value='/js/yourScript.js' />"></script>
+</body>
+</html>
