@@ -1,0 +1,49 @@
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public void stateListForAddCities(HttpSession session) {
+    try {
+        String stateSql = "SELECT STATE_NAME, STATE_ID FROM STATE_MASTER";
+        ArrayList<State> stateList = jdbcTemplate.query(stateSql, (ResultSet rs) -> {
+            ArrayList<State> tempList = new ArrayList<>();
+            while (rs.next()) {
+                State state = new State();
+                state.setStateName(rs.getString("STATE_NAME"));
+                state.setStateId(rs.getString("STATE_ID"));
+                tempList.add(state);
+            }
+            return tempList;
+        });
+        session.setAttribute("stateCollection", stateList);
+
+        String citySql = "SELECT CITY_NAME, CITY_ID FROM CITY_MASTER";
+        ArrayList<City> cityList = jdbcTemplate.query(citySql, (ResultSet rs) -> {
+            ArrayList<City> tempList = new ArrayList<>();
+            while (rs.next()) {
+                City city = new City();
+                city.setCityName(rs.getString("CITY_NAME"));
+                city.setCityId(rs.getString("CITY_ID"));
+                tempList.add(city);
+            }
+            return tempList;
+        });
+        session.setAttribute("cityList", cityList);
+
+        String brandSql = "SELECT Field_Data_ID, Field_Data_Name, Field_Data_Details FROM BRANDS WHERE ParentId IS NULL AND disabled='N' ORDER BY Field_Data_Name";
+        ArrayList<Brands> brandList = jdbcTemplate.query(brandSql, (ResultSet rs) -> {
+            ArrayList<Brands> tempList = new ArrayList<>();
+            while (rs.next()) {
+                Brands brand = new Brands();
+                brand.setFieldDataID(rs.getString("Field_Data_ID"));
+                brand.setFieldDataName(rs.getString("Field_Data_Name"));
+                brand.setFieldDataDetails(rs.getString("Field_Data_Details"));
+                tempList.add(brand);
+            }
+            return tempList;
+        });
+        session.setAttribute("brandList", brandList);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
