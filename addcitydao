@@ -1,19 +1,13 @@
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
+@Repository
 public class AddCityDAO {
 
+    @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    public AddCityDAO(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
 
     public String addCity(CityForm cityForm) {
         cityForm.setCityName(cityForm.getCityName().trim());
@@ -21,54 +15,37 @@ public class AddCityDAO {
 
         boolean tableAlreadyExists = false;
         boolean recordAlreadyExists = false;
-        ResultSet resultSet = null;
-        Connection conn = null;
+        SqlRowSet resultSet;
 
         try {
-            conn = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
-            DatabaseMetaData md = conn.getMetaData();
             String tableName = cityForm.getCityShortName();
+            resultSet = jdbcTemplate.queryForRowSet("SELECT * FROM information_schema.tables WHERE table_name = ?", tableName);
 
-            resultSet = md.getTables(null, null, tableName, null);
-            while (resultSet.next()) {
+            if (resultSet.next()) {
                 tableAlreadyExists = true;
             }
-            resultSet = null;
-            String checkCityNameRecordSql = "select * from CITY_MASTER where CITY_NAME='" + cityForm.getCityName() + "'";
-            resultSet = jdbcTemplate.queryForRowSet(checkCityNameRecordSql);
-            while (resultSet.next()) {
+
+            resultSet = jdbcTemplate.queryForRowSet("SELECT * FROM CITY_MASTER WHERE CITY_NAME = ?", cityForm.getCityName());
+            if (resultSet.next()) {
                 recordAlreadyExists = true;
             }
 
             if (!tableAlreadyExists && !recordAlreadyExists) {
-                String getZoneIdQuery = "select zone from CITY_MASTER where state_id = " + cityForm.getState() + " limit 1";
-                resultSet = jdbcTemplate.queryForRowSet(getZoneIdQuery);
-
+                resultSet = jdbcTemplate.queryForRowSet("SELECT zone FROM CITY_MASTER WHERE state_id = ? LIMIT 1", cityForm.getState());
                 while (resultSet.next()) {
                     cityForm.setUserZone(resultSet.getInt(1));
                 }
 
-                String insertQuery = "INSERT INTO CITY_MASTER(CITY_NAME, ZONE, STATE_ID, CITY_SHORTNAME) VALUES('" + cityForm.getCityName() + "'," + cityForm.getUserZone() + "," + cityForm.getState() + ",'" + cityForm.getCityShortName() + "')";
-                System.out.println("insertQuery>>" + insertQuery);
-                jdbcTemplate.update(insertQuery);
+                String insertQuery = "INSERT INTO CITY_MASTER(CITY_NAME, ZONE, STATE_ID, CITY_SHORTNAME) VALUES(?, ?, ?, ?)";
+                jdbcTemplate.update(insertQuery, cityForm.getCityName(), cityForm.getUserZone(), cityForm.getState(), cityForm.getCityShortName());
             } else {
                 return "ERROR:DUPLICATE";
             }
         } catch (Exception e) {
             e.printStackTrace();
             return "ERROR:GEN" + e.getMessage();
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (conn != null) {
-                DataSourceUtils.releaseConnection(conn, jdbcTemplate.getDataSource());
-            }
         }
+
         return "success";
     }
 }
