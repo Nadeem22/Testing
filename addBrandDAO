@@ -17,3 +17,20 @@
 
         return brandList;
     }
+public List<Brands> getAllBrandsVarient() {
+        String sql = "SELECT variant_name, variant_id FROM brand_variant";
+
+        return jdbcTemplate.query(sql, new ResultSetExtractor<List<Brands>>() {
+            @Override
+            public List<Brands> extractData(ResultSet rs) throws SQLException {
+                List<Brands> brandList = new ArrayList<>();
+                while (rs.next()) {
+                    Brands brand = new Brands();
+                    brand.setVarientId(rs.getInt("variant_id"));
+                    brand.setVarientName(rs.getString("variant_name"));
+                    brandList.add(brand);
+                }
+                return brandList;
+            }
+        });
+    }
