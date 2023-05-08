@@ -1,0 +1,19 @@
+ public List<Brands> getAllBrandDetails() {
+        List<Brands> brandList = new ArrayList<>();
+        
+        String sql = "SELECT field_data_id, Field_Data_Name, primary_variant, secondary_variant, sampling FROM brands where field_data_id not in (21111, 22222) order by 2";
+        
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+
+        for (Map<String, Object> row : rows) {
+            Brands brand = new Brands();
+            brand.setBrandId((String) row.get("field_data_id"));
+            brand.setBrandName((String) row.get("Field_Data_Name"));
+            brand.setPrimaryVariant((String) row.get("primary_variant"));
+            brand.setSecondaryVariant((String) row.get("secondary_variant"));
+            brand.setHasSampling((String) row.get("sampling"));
+            brandList.add(brand);
+        }
+
+        return brandList;
+    }
