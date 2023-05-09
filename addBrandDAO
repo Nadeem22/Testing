@@ -53,3 +53,64 @@ public List<Brands> getAllBrandsVarient() {
 
         return brandList;
     }
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+
+public class BrandDao {
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public String addBrand(BrandForm brand, String option) {
+        try {
+            int sampling = 0, hasVdo = 0, hasAdo = 0, hasAdhoc = 0;
+            if (brand.getSampling() != null) {
+                if (!brand.getSampling().equals("")) {
+                    sampling = 1;
+                }
+            }
+            // ... (Other conditions for hasVdo, hasAdo, and hasAdhoc)
+
+            if (option.equals("addBrand")) {
+                String sql = "INSERT INTO BRANDS(field_data_name,field_data_details,primary_variant,secondary_variant,field_data_id,sampling,no_of_primaryCalls,no_of_secondaryCalls,no_of_Sampling,ter_variant, qat_variant, qun_variant, no_of_terCalls, no_of_qatCalls, no_of_qunCalls,pri_tur,sec_tur,ter_tur,qat_tur,qun_tur,has_Video,has_Audio,samp_tur,start_hour,end_hour,avg_conversion,freebie_name,isNonH2h) "
+                        + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+                jdbcTemplate.update(new PreparedStatementCreator() {
+                    public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        // Set the prepared statement parameters
+                        // ...
+                        return stmt;
+                    }
+                });
+            } else if (!brand.getBrands().equals("-1") || (brand.getBrands() != null)) {
+                String sqlUpdate = "UPDATE BRANDS set field_data_name =?,field_data_details= ?,"
+                        + "primary_variant=?,secondary_variant=?,sampling=?, "
+                        + "no_of_primaryCalls=?,no_of_secondaryCalls=?,no_of_Sampling=?, "
+                        + "ter_variant=?, qat_variant=?, qun_variant=?, "
+                        + "no_of_terCalls=?, no_of_qatCalls=?, no_of_qunCalls=?, "
+                        + "pri_tur=?,sec_tur=?,ter_tur=?,qat_tur=?,qun_tur=?,has_Video=?,has_Audio=?,samp_tur=?,start_hour=?,end_hour=?,avg_conversion=?,freebie_name=?,isNonH2h=?"
+                        + " where field_data_id= ?";
+
+                jdbcTemplate.update(new PreparedStatementCreator() {
+                    public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                        PreparedStatement stmtUpdate = connection.prepareStatement(sqlUpdate);
+                        // Set the prepared statement parameters
+                        // ...
+                        return stmtUpdate;
+                    }
+                });
+            }
+
+            String batchDetailsSql = "insert into brand_batchdetails(generated_date) value(?)";
+            jdbcTemplate.update(batchDetailsSql, new Timestamp(System.currentTimeMillis()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return "success";
+    }
+}
