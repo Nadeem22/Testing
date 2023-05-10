@@ -190,3 +190,17 @@ public BrandForm fetchBrandDetails(HttpSession session, BrandForm brand) {
             return null;
         });
     }
+var brandValue = document.forms[0].brands.value;
+
+    if (brandValue !== "-1") {
+        var url = "/H2H/fetchBrandDetails?brandValue=" + brandValue;
+        var link = document.createElement("a");
+        link.href = url;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } else {
+        reset();
+        return false;
+    }
