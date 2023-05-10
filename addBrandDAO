@@ -106,4 +106,45 @@ public class BrandRepository {
         return "success";
     }
 }
+public BrandForm fetchBrandDetails(HttpSession session, BrandForm brand) {
+        UserForm loginUser = (UserForm) session.getAttribute("userLogin");
+        String sql = "SELECT field_data_name, field_data_details, primary_variant, secondary_variant,sampling,no_of_primaryCalls,no_of_secondaryCalls,no_of_Sampling, " +
+                "ter_variant, qat_variant, qun_variant, no_of_terCalls, no_of_qatCalls, no_of_qunCalls,pri_tur,sec_tur,ter_tur,qat_tur,qun_tur,has_Video," +
+                "has_Audio,samp_tur,start_hour,end_hour,avg_conversion,freebie_name,isNonH2h " +
+                "from h2h_schema.brands where field_data_id = ?";
+        // if (loginUser.getUserType().equals("9")) { sql += " AND agencyId=" + loginUser.getUserId(); }
 
+        return jdbcTemplate.queryForObject(sql, new Object[]{brand.getBrands()}, (ResultSetExtractor<BrandForm>) rs -> {
+            if (rs.next()) {
+                brand.setBrandName(rs.getString("field_data_name"));
+                brand.setBrandDetails(rs.getString("field_data_details"));
+                brand.setPrimaryId(rs.getInt("primary_variant"));
+                brand.setSecondaryId(rs.getInt("secondary_variant"));
+                brand.setSampling(rs.getInt("sampling") == 1 ? "on" : "");
+                brand.setP_npc(rs.getInt("no_of_primaryCalls"));
+                brand.setP_nsc(rs.getInt("no_of_secondaryCalls"));
+                brand.setP_nsp(rs.getInt("no_of_Sampling"));
+                brand.setTertiaryId(rs.getInt("ter_variant"));
+                brand.setQuaternaryId(rs.getInt("qat_variant"));
+                brand.setQunaryId(rs.getInt("qun_variant"));
+                brand.setP_n3c(rs.getInt("no_of_terCalls"));
+                brand.setP_n4c(rs.getInt("no_of_qatCalls"));
+                brand.setP_n5c(rs.getInt("no_of_qunCalls"));
+                brand.setPri_tur(rs.getDouble("pri_tur"));
+                brand.setSec_tur(rs.getDouble("sec_tur"));
+                brand.setTer_tur(rs.getDouble("ter_tur"));
+                brand.setQat_tur(rs.getDouble("qat_tur"));
+                brand.setQun_tur(rs.getDouble("qun_tur"));
+                brand.setP_hasVdo(rs.getString("has_Video").equals("1") ? "on" : "off");
+                brand.setP_hasAdo(rs.getString("has_Audio").equals("1") ? "on" : "off");
+                brand.setSamp_tur(rs.getDouble("samp_tur"));
+                brand.setStTime(rs.getInt("start_hour"));
+                brand.setEndTime(rs.getInt("end_hour"));
+                brand.setAvg_conv(rs.getInt("avg_conversion"));
+                brand.setFreebieName(rs.getString("freebie_name"));
+                brand.setisNonH2h(rs.getInt("isNonH2h") == 1 ? "on" : "off");
+                return brand;
+            }
+            return null;
+        });
+    }
