@@ -1,0 +1,37 @@
+public TreeSet parseFileNSave(File newFile) {
+    TreeSet codesList = new TreeSet();
+    FileInputStream file = null;
+    XSSFWorkbook workbook = null;
+    try {
+        file = new FileInputStream(newFile);
+        OPCPackage opcPackage = OPCPackage.open(file);
+        workbook = new XSSFWorkbook(opcPackage);
+        int numSheets = workbook.getNumberOfSheets();
+        for (int sheetNum = 0; sheetNum < numSheets; sheetNum++) {
+            XSSFSheet sheet = (XSSFSheet) workbook.getSheetAt(sheetNum);
+            for (Row row : sheet) {
+                for (Cell cell : row) {
+                    if (cell.getColumnIndex() == 2 && cell.getCellType() == CellType.NUMERIC) {
+                        String newValue = Integer.toString((int) cell.getNumericCellValue());
+                        codesList.add(newValue);
+                    }
+                }
+            }
+        }
+        return codesList;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    } finally {
+        try {
+            if (file != null) {
+                file.close();
+            }
+            if (workbook != null) {
+                workbook.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
