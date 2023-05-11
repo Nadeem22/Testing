@@ -1,0 +1,26 @@
+public List<SMSHistory> getSMSHistory(String fromDate, String toDate, String uploadType, String page) {
+    List<SMSHistory> historyList = new ArrayList<>();
+
+    StringBuilder query = new StringBuilder("SELECT file_name, event_date, uploaded_date, total_count FROM sms_history");
+    Map<String, Object> queryParams = new HashMap<>();
+
+    if ("searchPage".equals(page)) {
+        query.append(" WHERE ");
+        if (!fromDate.isEmpty()) {
+            query.append(" uploaded_date BETWEEN :fromDate AND :toDate AND");
+            queryParams.put("fromDate", fromDate);
+            queryParams.put("toDate", toDate.isEmpty() ? new SimpleDateFormat("yyyy-MM-dd").format(new Date()) : toDate);
+        }
+        if (!uploadType.isEmpty() && !"-1".equals(uploadType)) {
+            String condition = "1".equals(uploadType) ? "!=" : "=";
+            query.append(" file_name ").append(condition).append(" 'ZipDial' AND");
+        }
+        query.setLength(query.length() - 3);
+    }
+
+    query.append(" ORDER BY uploaded_date DESC");
+
+    historyList = namedParameterJdbcTemplate.query(query.toString(), queryParams, new BeanPropertyRowMapper<>(SMSHistory.class));
+
+    return historyList;
+}
