@@ -24,3 +24,27 @@ public List<SMSHistory> getSMSHistory(String fromDate, String toDate, String upl
 
     return historyList;
 }
+public void checkIfValidated(SmsValidationForm smsValidationForm, HttpSession session) {
+        String userNameCurrentUser = (String) session.getAttribute("userName");
+
+        String validationQuery = "SELECT zc.validated as 'validated',zc.user_id as 'user_id',(select um.user_name from user_master um where user_id=zc.user_id) as 'userName',(select user_name  from user_master where user_id = (select agencyid from user_master where user_id = zc.user_id)) as 'Agency Name' FROM zipdial_codes zc "
+                + " where sms_code=? AND generated_date=?";
+        
+        jdbcTemplate.query(validationQuery, new Object[] { smsValidationForm.getSmsCode(), smsValidationForm.getDate() }, rs -> {
+            smsValidationForm.setValidated(rs.getString("validated"));
+            if (smsValidationForm.getValidated().equals("Y")) {
+                smsValidationForm.setUsername(rs.getString("userName"));
+                smsValidationForm.setAgency(rs.getString("Agency Name"));
+                if (smsValidationForm.getAgency().equals(userNameCurrentUser)) {
+                    smsValidationForm.setStatus("200");
+                } else {
+                    smsValidationForm.setStatus("403");
+                }
+            } else if (smsValidationForm.getValidated().equals("N")) {
+                smsValidationForm.setStatus("401");
+            } else {
+                smsValidationForm.setStatus("404");
+            }
+        });
+    }
+}
