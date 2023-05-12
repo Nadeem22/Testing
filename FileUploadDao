@@ -74,3 +74,17 @@ public void updateSMSHistory(String fileName, int count, String fromDate, int ma
         ps.setInt(6, count - matchedSize);
     });
 }
+public void addUnMatchedSMSCode(TreeSet<String> matchedSMS, TreeSet<String> fileList, java.util.Date date) {
+
+    String sql = "INSERT INTO SMS_CODE(smscode, is_valid, uploaded_date) VALUES(?, ?, ?)";
+
+    for (String fileSMS : fileList) {
+        if (!matchedSMS.contains(fileSMS)) {
+            jdbcTemplate.update(sql, ps -> {
+                ps.setString(1, fileSMS);
+                ps.setString(2, "N");
+                ps.setDate(3, new java.sql.Date(date.getTime()));
+            });
+        }
+    }
+}
