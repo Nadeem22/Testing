@@ -1,0 +1,27 @@
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public List<Map<String, Object>> fetchNList() {
+
+    String sql = "SELECT sms_id, sms_code FROM promoter_sms WHERE (sms_code IS NOT NULL AND sms_code != '') AND is_validated = 'N'";
+
+    List<Map<String, Object>> DBData = new ArrayList<>();
+    Set<String> duplicate = new HashSet<>();
+
+    List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+    for (Map row : rows) {
+        Map<String, Object> map = new HashMap<>();
+        String smsId = (String) row.get("sms_id");
+        String smsCode = (String) row.get("sms_code");
+
+        map.put("sms_id", smsId);
+        map.put("sms_code", smsCode);
+        if (duplicate.add(smsCode)) {
+            map.put("status", "N");
+        } else {
+            map.put("status", "D");
+        }
+        DBData.add(map);
+    }
+    return DBData;
+}
