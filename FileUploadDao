@@ -25,3 +25,52 @@ public List<Map<String, Object>> fetchNList() {
     }
     return DBData;
 }
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public List<Map<String, Object>> fetchYDList() {
+
+    String sql = "SELECT sms_id, sms_code, is_validated FROM promoter_sms WHERE (sms_code IS NOT NULL AND sms_code != '') AND (is_validated = 'Y' OR is_validated = 'D')";
+
+    List<Map<String, Object>> DBData = new ArrayList<>();
+
+    List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+    for (Map row : rows) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("sms_id", row.get("sms_id"));
+        map.put("sms_code", row.get("sms_code"));
+        map.put("status", row.get("is_validated"));
+        DBData.add(map);
+    }
+    return DBData;
+}
+public void updateDBRecords(List<Map<String, Object>> nList) {
+
+    String sql = "UPDATE PROMOTER_SMS SET IS_VALIDATED = ? WHERE SMS_ID = ?";
+
+    List<Object[]> parameters = new ArrayList<>();
+
+    for (Map<String, Object> dbRow : nList) {
+        if (!dbRow.get("status").toString().equalsIgnoreCase("N")) {
+            parameters.add(new Object[]{
+                    dbRow.get("status"),
+                    Integer.parseInt(dbRow.get("sms_id").toString())
+            });
+        }
+    }
+
+    jdbcTemplate.batchUpdate(sql, parameters);
+}
+public void updateSMSHistory(String fileName, int count, String fromDate, int matchedSize) {
+
+    String sql = "INSERT INTO SMS_HISTORY(file_name, event_date, uploaded_date, total_count, matched, unmatched) VALUES(?, ?, ?, ?, ?, ?)";
+
+    jdbcTemplate.update(sql, ps -> {
+        ps.setString(1, fileName);
+        ps.setDate(2, getDate(fromDate));
+        ps.setDate(3, new java.sql.Date(System.currentTimeMillis()));
+        ps.setInt(4, count);
+        ps.setInt(5, matchedSize);
+        ps.setInt(6, count - matchedSize);
+    });
+}
