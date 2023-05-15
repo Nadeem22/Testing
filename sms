@@ -48,3 +48,35 @@ public void checkIfValidated(SmsValidationForm smsValidationForm, HttpSession se
         });
     }
 }
+public void checkIfValidated(SmsValidationForm smsValidationForm, HttpSession session) {
+	String userNameCurrentUser = (String) session.getAttribute("userName");
+
+	String validationQuery = "SELECT zc.validated as 'validated',zc.user_id as 'user_id'," +
+			"(select um.user_name from user_master um where user_id=zc.user_id) as 'userName'," +
+			"(select user_name  from user_master where user_id = (select agencyid from user_master where user_id = zc.user_id)) as 'Agency Name' " +
+			"FROM zipdial_codes zc where sms_code=? AND generated_date=?";
+
+	try {
+		List<Map<String, Object>> rows = jdbcTemplate.queryForList(validationQuery, smsValidationForm.getSmsCode(), smsValidationForm.getDate());
+		if (!rows.isEmpty()) {
+			for (Map row : rows) {
+				smsValidationForm.setValidated((String)row.get("validated"));
+				if (smsValidationForm.getValidated().equals("Y")) {
+					smsValidationForm.setUsername((String)row.get("userName"));
+					smsValidationForm.setAgency((String)row.get("Agency Name"));
+					if (smsValidationForm.getAgency().equals(userNameCurrentUser)) {
+						smsValidationForm.setStatus("200");
+					} else {
+						smsValidationForm.setStatus("403");
+					}
+				} else if (smsValidationForm.getValidated().equals("N")) {
+					smsValidationForm.setStatus("401");
+				}
+			}
+		} else {
+			smsValidationForm.setStatus("404");
+		}
+	} catch (DataAccessException ex) {
+		ex.printStackTrace();
+	}
+}
