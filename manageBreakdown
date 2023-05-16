@@ -51,3 +51,19 @@ public String addReason(ManageBreakdownForm bform, String option) {
             return null;
         }
     }
+ public ManageBreakdownForm getReasonById(String reasonId) {
+        try {
+            String sql = "SELECT fnwr_id, reason, payable, description FROM fnwreason where fnwr_id = ?";
+            return jdbcTemplate.queryForObject(sql, new Object[]{reasonId}, (rs, rowNum) -> {
+                ManageBreakdownForm mbdF = new ManageBreakdownForm();
+                mbdF.setReason(rs.getString("reason"));
+                mbdF.setPayable(rs.getString("payable"));
+                mbdF.setDescription(rs.getString("description"));
+                return mbdF;
+            });
+        } 
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
