@@ -1,0 +1,53 @@
+public String addReason(ManageBreakdownForm bform, String option) {
+        try {
+            if (option.equals("addReason")) {
+                String sql = "INSERT INTO fnwreason(reason,payable,description,INS_DATE) " + 
+                             "VALUES(?,?,?,date_add(now(), INTERVAL 330 MINUTE))";
+                jdbcTemplate.update(sql, bform.getReason(), bform.getPayable(), bform.getDescription());
+            } 
+            else if (!bform.getPayable().equals("-1") || (bform.getPayable() != null)) {
+                String sqlUpdate = "UPDATE fnwreason set reason =?,payable= ?,description=? where fnwr_id= ?";
+                jdbcTemplate.update(sqlUpdate, bform.getReason(), bform.getPayable(), bform.getDescription(), bform.getReasons());
+            }
+            return "success";
+        } 
+        catch (Exception e) {
+            e.printStackTrace();
+            return "sql";
+        }
+    }
+    
+     public ManageBreakdownForm getReasonById(ManageBreakdownForm mbdF) {
+        try {
+            String sql = "SELECT fnwr_id, reason, payable, description FROM fnwreason where fnwr_id = ?";
+            return jdbcTemplate.queryForObject(sql, new Object[]{mbdF.getReasons()}, (rs, rowNum) -> {
+                mbdF.setReason(rs.getString(2));
+                mbdF.setPayable(rs.getString(3));
+                mbdF.setDescription(rs.getString(4));
+                return mbdF;
+            });
+        } 
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+     public List<FnwReason> getAllReason() {
+        try {
+            String sql = "select fnwr_id, reason from fnwreason order by reason";
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+
+            List<FnwReason> reasonList = new ArrayList<>();
+            for (Map<String, Object> row : rows) {
+                FnwReason fr = new FnwReason();
+                fr.setFnwrId((Integer) row.get("fnwr_id"));
+                fr.setReason((String) row.get("reason"));
+                reasonList.add(fr);
+            }
+            return reasonList;
+        } 
+        catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
