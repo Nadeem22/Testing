@@ -140,3 +140,33 @@ public Map<String, String> getCongVals() {
         return reportList;
     }
 }
+public int getTFNMandays(float fullOrHalfDay, String trackDate, String promoter) {
+    String syncCutOffDate = getSyncCutOffDate();
+    int tfnDays = 0;
+
+    String sql = "SELECT COUNT(DISTINCT t.id) FROM tfn t " +
+                 "INNER JOIN h2h_teams ht ON ht.city_id = t.city AND ht.agencyid = t.agency " +
+                 "INNER JOIN user_master um ON um.parent_user_id = ht.team_id " +
+                 "INNER JOIN h2h_main hm ON hm.userId = um.user_id " +
+                 "INNER JOIN accompany_call a ON h.track_id = a.track_id AND date(dataSyncTime) BETWEEN DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH,'%Y-%m-01') AND DATE_FORMAT(CURDATE(),'%Y-%m-"+syncCutOffDate+"') " +
+                 "INNER JOIN track_master tm ON hm.track_id = tm.track_id AND tm.track_date = t.toDate " +
+                 "INNER JOIN qv_audit qsc ON tm.track_id = qsc.trackid " +
+                 "WHERE um.user_name = ? " +
+                 "AND hm.brand != 38 AND (qsc.status = 2 OR (qsc.status = 3 AND improper_img_reason = -1)) AND toDate = ? " +
+                 "GROUP BY t.city, t.toDate, t.agency";
+
+    try {
+        jdbcTemplate.query(sql, preparedStatement -> {
+            preparedStatement.setString(1, promoter);
+            preparedStatement.setString(2, trackDate);
+        }, rs -> {
+            if (fullOrHalfDay == 0 || fullOrHalfDay == 0.5) {
+                tfnDays = 1;
+            }
+        });
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+    }
+
+    return tfnDays;
+}
