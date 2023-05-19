@@ -211,3 +211,32 @@ public CompBreakdown getResultApp(String trackDate, int userId, String syncCutOf
 
     return result;
 }
+public CompBreakdown getResultReject(String trackDate, int userId, String syncCutOffDate) {
+    CompBreakdown result = null;
+    String sql = "SELECT (SELECT reason FROM fnwreason WHERE fnwr_id = hm.bd_id) AS BR, "
+        + "(SELECT payable FROM fnwreason WHERE fnwr_id = hm.bd_id) AS brPay, hm.bd_id FROM track_master tm "
+        + "INNER JOIN h2h_main hm ON tm.track_id = hm.track_id AND (hm.bd_id > 0 OR hm.training_id > 0) "
+        + "INNER JOIN accompany_call a ON h.track_id = a.track_id AND DATE(dataSyncTime) BETWEEN DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH,'%Y-%m-01') AND DATE_FORMAT(CURDATE(),'%Y-%m-"
+        + syncCutOffDate + "') " 
+        + "WHERE hm.User_Type IN (4,6) AND brand = 38 AND tm.track_date = ? "
+        + "AND hm.userId = ? AND (hm.ag_audit = 0 OR hm.app_audit = 0 OR hm.bus_audit = 0 OR hm.app_audit = 3)";
+
+    try {
+        List<CompBreakdown> results = jdbcTemplate.query(sql, new Object[]{trackDate, userId}, (rs, rowNum) -> {
+            CompBreakdown compBreakdown = new CompBreakdown();
+            compBreakdown.setbReason(rs.getString("BR"));
+            compBreakdown.setBrPay(rs.getString("brPay"));
+            compBreakdown.setBdId(rs.getInt("bd_id"));
+            compBreakdown.setBrAudStatus("Rejected");
+            return compBreakdown;
+        });
+
+        if (!results.isEmpty()) {
+            result = results.get(0);
+        }
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+    }
+
+    return result;
+}
