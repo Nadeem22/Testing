@@ -170,3 +170,15 @@ public int getTFNMandays(float fullOrHalfDay, String trackDate, String promoter)
 
     return tfnDays;
 }
+public String getSyncCutOffDate() {
+    String cutOffDate = null;
+    String sql = "SELECT config_value FROM configdata WHERE config_name = 'brCutOffDate'";
+
+    try {
+        cutOffDate = jdbcTemplate.queryForObject(sql, String.class);
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+    }
+
+    return cutOffDate;
+}
