@@ -31,3 +31,16 @@ public List<User> getPromoterListByTeam(String teamId) {
         return promoterList;
     }
 }
+public Map<String, String> getCongVals() {
+    String sql = "SELECT config_name, config_value FROM configdata";
+    Map<String, String> configMap = new HashMap<>();
+
+    try {
+        jdbcTemplate.query(sql, rs -> {
+            configMap.put(rs.getString(1), rs.getString(2));
+        });
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+    }
+    return configMap;
+}
