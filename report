@@ -392,3 +392,22 @@ public ArrayList getAttendanceReport(String team, String fromDate, String toDate
     }
     return reportList1;
 }
+public int getHolidayCount(String promoter, String city, String trackDate) {
+        int count  = 0;
+
+        String sql = "SELECT count(holiday_date) FROM holiday_list WHERE "
+            + "state=(SELECT state_id FROM city_master WHERE city_name = ?) "
+            + "AND agency=(SELECT agencyid FROM user_master WHERE user_name = ?) "
+            + "AND YEAR(holiday_date) = YEAR(now()) "
+            + "AND MONTH(holiday_date) = MONTH(?)";
+
+        try {
+            count = jdbcTemplate.queryForObject(sql, new Object[] {city, promoter, trackDate}, Integer.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("SQL for holiday: " + sql);
+        return count;
+    }
+}
