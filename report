@@ -269,3 +269,106 @@ public CompBreakdown getResultNotAudited(String trackDate, int userId, String sy
 
     return result;
 }
+
+@Transactional
+    public ArrayList getAttendanceReport(String team, String fromDate, String toDate, String promoterId, Map configMap) {
+        // your previous code logic here...
+        // ...
+
+        String finalQuery = baseQueryPart1 + manday + tfn + baseQueryPart2 + query + baseQueryPart3 + query + endQueryPart;
+
+        ArrayList reportList = jdbcTemplate.query(finalQuery, preparedStatement -> {
+            int index = 1;
+            if (team != null && !team.equals("-1")) {
+                if (promoterId != null && !promoterId.equals("-1")) {
+                    preparedStatement.setString(index++, team);
+                    preparedStatement.setString(index++, promoterId);
+                } else {
+                    preparedStatement.setString(index++, team);
+                }
+            } else if (promoterId != null && !promoterId.equals("-1")) {
+                preparedStatement.setString(index++, promoterId);
+            }
+            if (team != null && !team.equals("-1")) {
+                if (promoterId != null && !promoterId.equals("-1")) {
+                    preparedStatement.setString(index++, team);
+                    preparedStatement.setString(index++, promoterId);
+                } else {
+                    preparedStatement.setString(index++, team);
+                }
+            } else if (promoterId != null && !promoterId.equals("-1")) {
+                preparedStatement.setString(index++, promoterId);
+            }
+        }, resultSet -> {
+            // your ResultSetExtractor logic here
+            ArrayList localReportList = new ArrayList();
+            while (resultSet.next()) {
+                // create and add CompReportForm object to list
+                // ... your logic here
+            }
+            // your additional logic outside the loop (for example, getting Func_Deduction)
+            // ...
+
+            return localReportList;
+        });
+
+        // your remaining code logic here...
+
+        return reportList;
+    }
+}
+public ArrayList getAttendanceReport(String team, String fromDate, String toDate, String promoterId, Map<String, String> configMap) {
+    final int FULL_DAY_MINS = Integer.parseInt(configMap.get("FULL_MANDAY_MINS")), 
+            MINS_89 = Integer.parseInt(configMap.get("0_MANDAY_MINS")),
+            MINS_179 = Integer.parseInt(configMap.get("1/2_MANDAY_MINS")),
+            MINS_299 = Integer.parseInt(configMap.get("3/4_MANDAY_MINS"));
+    
+    // ... your code logic here ...
+
+    // execute the query
+    ArrayList<CompReportForm> reportList = jdbcTemplate.query(finalQuery, preparedStatement -> {
+        int index = 1;
+        // set your prepared statement parameters
+        // ...
+    }, resultSet -> {
+        ArrayList<CompReportForm> localReportList = new ArrayList<>();
+        while (resultSet.next()) {
+            CompReportForm cr = new CompReportForm();
+            // set your CompReportForm properties
+            cr.setPromFdate(resultSet.getString("track_id"));
+            // ... your logic here to set all properties of CompReportForm ...
+
+            localReportList.add(cr);
+        }
+
+        // your additional logic outside the loop (for example, getting Func_Deduction)
+        int prevUser = 0, bId = 0, cId = 0;
+        for (CompReportForm crf : localReportList) {
+            if(crf.getProductiveCalls() > 0){
+                if(crf.getBrandId() != bId || crf.getCityId() != cId || crf.getUserId() != prevUser){
+                    // Execute the query for Func_Deduction
+                    jdbcTemplate.query(Func_Deduction, funcPs -> {
+                        funcPs.setInt(1, crf.getUserId());
+                        funcPs.setString(2, fromDate);
+                        funcPs.setInt(3, crf.getBrandId()); 
+                        funcPs.setInt(4, crf.getCityId());
+                        funcPs.setInt(5, crf.getAgencyId());
+                    }, funcRs -> {
+                        while(funcRs.next()){
+                            crf.setDeduction(funcRs.getInt("ded"));
+                        }
+                    });
+                    prevUser = crf.getUserId();
+                    bId = crf.getBrandId();  
+                    cId = crf.getCityId();
+                }
+            }
+        }
+
+        return localReportList;
+    });
+
+    // your remaining code logic here...
+
+    return reportList;
+}
