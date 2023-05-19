@@ -141,3 +141,12 @@ public String generateDropdowns(HttpSession session, String agencyId) {
         return null;
     }
 }
+public int getZoneByCity(String cityId) {
+    String sql = "SELECT zone FROM city_master where city_id = ?";
+    try {
+        return jdbcTemplate.queryForObject(sql, new Object[]{cityId}, Integer.class);
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+        return 0;
+    }
+}
