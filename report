@@ -1,0 +1,33 @@
+public List<User> getPromoterListByTeam(String teamId) {
+        String sql = "SELECT user_id,user_name FROM user_master WHERE user_type in (4,6) " + 
+            (teamId.isEmpty() ? "" : "AND parent_user_id = ? ") + 
+            "order by user_name";
+
+        List<User> promoterList;
+
+        if (teamId.isEmpty()) {
+            promoterList = jdbcTemplate.query(sql, (ResultSet rs) -> {
+                List<User> list = new ArrayList<>();
+                while (rs.next()) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUserName(rs.getString("user_name"));
+                    list.add(user);
+                }
+                return list;
+            });
+        } else {
+            promoterList = jdbcTemplate.query(sql, new Object[]{teamId}, (ResultSet rs) -> {
+                List<User> list = new ArrayList<>();
+                while (rs.next()) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUserName(rs.getString("user_name"));
+                    list.add(user);
+                }
+                return list;
+            });
+        }
+        return promoterList;
+    }
+}
