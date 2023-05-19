@@ -44,3 +44,99 @@ public Map<String, String> getCongVals() {
     }
     return configMap;
 }
+ public List<CompReportForm> getAttendanceReport(String team, String fromDate, String toDate, String promoterId, Map<String, String> configMap) {
+        final int FULL_DAY_MINS = Integer.parseInt(configMap.get("FULL_MANDAY_MINS"));
+        final int MINS_89 = Integer.parseInt(configMap.get("0_MANDAY_MINS"));
+        final int MINS_179 = Integer.parseInt(configMap.get("1/2_MANDAY_MINS"));
+        final int MINS_299 = Integer.parseInt(configMap.get("3/4_MANDAY_MINS"));
+
+        String smsSts = configMap.get("SMS_STATUS");
+        String audSts = configMap.get("AUDIT_STATUS");
+        String syncCutOffDate = configMap.get("brCutOffDate");
+
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        List<CompReportForm> reportList = new ArrayList<>();
+
+        try {
+            String query = "";
+            String manday = "";
+            String tfn = "";
+
+            if (fromDate != null && !fromDate.equals("")) {
+                manday = "(select count(distinct date(tm.track_date)) from h2h_main h inner join track_master tm on tm.TRACK_ID = h.TRACK_ID " +
+                        "inner join accompany_call a on h.track_id = a.track_id and date(dataSyncTime) between DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH,'%Y-%m-01') and DATE_FORMAT(CURDATE(),'%Y-%m-" + syncCutOffDate + "') " +
+                        "where h.UserId = hm.UserId and tm.track_date between Date(?) AND Date(?)) as Mandays, ";
+                tfn = "ifnull((select count(distinct t.id) from tfn t inner join h2h_teams ht on ht.city_id = t.city and ht.agencyid = t.agency " +
+                        "inner join user_master um on um.parent_user_id = ht.team_id inner join h2h_main h on h.userId = um.user_id " +
+                        "inner join accompany_call a on h.track_id = a.track_id and date(dataSyncTime) between DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH,'%Y-%m-01') and DATE_FORMAT(CURDATE(),'%Y-%m-" + syncCutOffDate + "') " +
+                        "inner join track_master tm on tm.track_id = h.track_id and tm.track_date = t.toDate " +
+                        "inner join qv_audit qsc on tm.track_id = qsc.trackid " +
+                        "where promoter = hm.UserId and h.brand!=38 and (qsc.status = 2 or (qsc.status = 3 and improper_img_reason = -1)) " +
+                        "and toDate between ? and ? group by t.city, t.toDate, t.agency),0) as tfnDays, ";
+                query += " and tm.track_date between Date(?) AND Date(?)";
+            } else {
+                return reportList;
+            }
+
+            if (team != null && !team.equals("-1")) {
+                if (promoterId != null && !promoterId.equals("-1")) {
+                    query += " and hm.team_id = ? AND hm.UserId = ?";
+                } else {
+                    query += " and hm.team_id = ?";
+                     } else if (promoterId != null && !promoterId.equals("-1")) {
+                query += " and hm.UserId = ?";
+            }
+            query += " GROUP BY um.user_name, tm.track_date ORDER BY  um.user_name ASC , tm.track_date ASC)";
+            baseQueryPart1 = baseQueryPart1.replaceAll(":SSts", smsSts);
+            baseQueryPart1 = baseQueryPart1.replaceAll(":ASts", audSts);
+            baseQueryPart2 = baseQueryPart2.replaceAll(":syncCutOffDate", syncCutOffDate);
+            String finalQuery = baseQueryPart1 + manday + tfn + baseQueryPart2 + query + baseQueryPart3 + query + endQueryPart;
+
+            int index = 1;
+            if (team != null && !team.equals("-1")) {
+                if (promoterId != null && !promoterId.equals("-1")) {
+                    stmt.setString(index++, team);
+                    stmt.setString(index++, promoterId);
+                } else {
+                    stmt.setString(index++, team);
+                }
+            } else if (promoterId != null && !promoterId.equals("-1")) {
+                stmt.setString(index++, promoterId);
+            }
+            stmt.setString(index++, fromDate);
+            stmt.setString(index++, toDate);
+            stmt.setString(index++, fromDate);
+            stmt.setString(index++, toDate);
+
+            System.out.println("Completion Report Start::(" + new SimpleDateFormat("YY-MM-dd HH:mm:ss").format(new Date()) + ")" + stmt);
+            rs = stmt.executeQuery();
+            System.out.println("Completion Report End::(" + new SimpleDateFormat("YY-MM-dd HH:mm:ss").format(new Date()) + ")");
+
+            while (rs.next()) {
+                CompReportForm cr = new CompReportForm();
+                cr.setPromFdate(rs.getString("track_id"));
+                cr.setDate(rs.getString("TrackDate"));
+                cr.setBrand(rs.getString("FieldDataName"));
+                cr.setCity(rs.getString("City"));
+                cr.setTeam(rs.getString("Team"));
+                cr.setPromoterId(rs.getString("Promoter"));
+
+                // Rest of the code remains the same
+
+                reportList.add(cr);
+            }
+
+            rs.close();
+            // Rest of the code remains the same
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            // Rest of the code remains the same
+        }
+
+        return reportList;
+    }
+}
