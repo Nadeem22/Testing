@@ -372,3 +372,23 @@ public ArrayList getAttendanceReport(String team, String fromDate, String toDate
 
     return reportList;
 }
+ } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) { 
+                e.printStackTrace();
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) { 
+                e.printStackTrace();
+            }
+        }
+    }
+    return reportList1;
+}
