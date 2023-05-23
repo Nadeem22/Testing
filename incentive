@@ -1,0 +1,49 @@
+ public List<IncentiveDetails> getIncentiveDetails(String page, String brand, String fromDate, String toDate, 
+                                                        String city, UserForm user, String agency) {
+        List<IncentiveDetails> inList = new ArrayList<>();
+
+        String query = "select c.city_name, s.state_name, b.field_data_name, um.user_name, i.plan,"
+                + /*rest of your query*/;
+
+        if(user.getUserType().equals("9")) {
+            query += " and i.AgencyId = :userId";
+        }
+
+        String queryEnd = " ORDER BY i.INS_DATE DESC limit 250";
+        if (page.equals("searchPage")) {
+            query += " WHERE ";
+            if (null != brand && !(brand.equals("") || brand.equals("-1"))) {
+                query += " b.Field_Data_id =:brand AND";
+            }
+            if ((null != fromDate && !fromDate.equals("")) && (null != toDate && !toDate.equals(""))) {
+                query += " date(i.INS_DATE) BETWEEN DATE(:fromDate) AND date(:toDate) AND";
+            } 
+            if (null != city && !(city.equals("") || city.equals("-1"))) {
+                query += " c.city_id in (:city) AND";
+            }
+            if (null != agency && !(agency.equals("") || agency.equals("-1"))) {
+                query += " i.agencyId in (:agency) AND";
+            }
+            query = query.substring(0, query.length() - 3);
+        }
+
+        query += queryEnd;
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("userId", user.getUserId());
+        parameters.addValue("brand", brand);
+        parameters.addValue("fromDate", fromDate);
+        parameters.addValue("toDate", toDate);
+        parameters.addValue("city", city);
+        parameters.addValue("agency", agency);
+
+        RowMapper<IncentiveDetails> rowMapper = (rs, rowNum) -> {
+            IncentiveDetails id = new IncentiveDetails();
+            id.setCityName(rs.getString("city_name"));
+            // add the rest of your setters here
+            return id;
+        };
+
+        inList = namedParameterJdbcTemplate.query(query, parameters, rowMapper);
+        return inList;
+    }
