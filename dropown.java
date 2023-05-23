@@ -150,3 +150,20 @@ public int getZoneByCity(String cityId) {
         return 0;
     }
 }
+public ArrayList<User> getAllActiveAgenciesString() {
+        String sql = "SELECT user_name, user_id FROM user_master WHERE user_type=9 and user_id not in (select user_id from dummy_agencies) ORDER BY user_name ASC";
+
+        ArrayList<User> userList = jdbcTemplate.query(sql, resultSet -> {
+            ArrayList<User> list = new ArrayList<>();
+            while (resultSet.next()) {
+                User user = new User();
+                user.setUserName(resultSet.getString("user_name"));
+                user.setUserIdInString(resultSet.getString("user_id"));
+                list.add(user);
+            }
+            return list;
+        });
+
+        System.out.println("dummy : " + sql);
+        return userList;
+    }
