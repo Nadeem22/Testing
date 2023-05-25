@@ -47,3 +47,238 @@
         inList = namedParameterJdbcTemplate.query(query, parameters, rowMapper);
         return inList;
     }
+    
+    public int addIncentive1(IncentiveForm1 form, UserForm user) {
+        int flag = 0;
+        int res = 0;
+        
+        try {
+            String incSql = "INSERT INTO h2h_schema.incentive (State_id, City_id, brand_id, AgencyId, plan, slab1_min, slab1_max, slab1_val, slab2_min, slab2_max, slab2_val, slab3_min, slab3_max, slab3_val, slab4_min, slab4_max, slab4_val, slab5_min, slab5_max, slab5_val, S1_samp_min, S1_samp_max, S2_samp_min, S2_samp_max, S3_samp_min, S3_samp_max, S4_samp_min, S4_samp_max, S5_samp_min, S5_samp_max, INS_DATE) " +
+                    "VALUES ((SELECT State_id FROM city_master WHERE city_id = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date_add(NOW(), INTERVAL 330 MINUTE))";
+            
+            String dudSQL = "INSERT INTO h2h_schema.deductions (State_id, City_id, brand_id, AgencyId, plan, d1_min, d1_max, d1_samp_min, d1_samp_max, d1_val, d2_min, d2_max, d2_samp_min, d2_samp_max, d2_val, d3_min, d3_max, d3_samp_min, d3_samp_max, d3_val, d4_min, d4_max, d4_samp_min, d4_samp_max, d4_val, d5_min, d5_max, d5_samp_min, d5_samp_max, d5_val, INS_DATE) " +
+                    "VALUES ((SELECT State_id FROM city_master WHERE city_id = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date_add(NOW(), INTERVAL 330 MINUTE))";
+            
+            String incUpd = "UPDATE incentive " +
+                    "SET plan = ?, slab1_min = ?, slab1_max = ?, S1_samp_min = ?, S1_samp_max = ?, slab1_val = ?, " +
+                    "slab2_min = ?, slab2_max = ?, S2_samp_min = ?, S2_samp_max = ?, slab2_val = ?, " +
+                    "slab3_min = ?, slab3_max = ?, S3_samp_min = ?, S3_samp_max = ?, slab3_val = ?, " +
+                    "slab4_min = ?, slab4_max = ?, S4_samp_min = ?, S4_samp_max = ?, slab4_val = ?, " +
+                    "slab5_min = ?, slab5_max = ?, S5_samp_min = ?, S5_samp_max = ?, slab5_val = ? " +
+                    "WHERE State_id = (SELECT State_id FROM city_master WHERE city_id = ?) AND City_id = ? AND brand_id = ? AND AgencyId = ?";
+            
+            String dedUpd = "UPDATE deductions " +
+                    "SET plan = ?, d1_min = ?, d1_max = ?, d1_samp_min = ?, d1_samp_max = ?, d1_val = ?, " +
+                    "d2_min = ?, d2_max = ?, d2_samp_min = ?, d2_samp_max = ?, d2_val = ?, " +
+                    "d3_min = ?, d3_max = ?, d3_samp_min = ?, d3_samp_max = ?, d3_val = ?, " +
+                    "d4_min = ?, d4_max = ?, d4_samp_min = ?, d4_samp_max = ?, d4_val = ?, " +
+                    "d5_min = ?, d5_max = ?, d5_samp_min = ?, d5_samp_max = ?, d5_val = ? " +
+                    "WHERE State_id = (SELECT State_id FROM city_master WHERE city_id = ?) AND City_id = ? AND brand_id = ? AND AgencyId = ?";
+            
+            int[] incRows = jdbcTemplate.batchUpdate(incSql, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                   String cityId = form.getCity().get(i);
+                    String agency = form.getAgency().get(i);
+                    
+                    preparedStatement.setString(1, cityId);
+                    preparedStatement.setString(2, cityId);
+                    preparedStatement.setString(3, form.getBrand());
+                    preparedStatement.setString(4, agency);
+                    preparedStatement.setString(5, form.getPlan());
+                    preparedStatement.setInt(6, form.getS1Min());
+                    preparedStatement.setInt(7, form.getS1Max());
+                    preparedStatement.setInt(8, form.getS1Incen());
+                    preparedStatement.setInt(9, form.getS2Min());
+                    preparedStatement.setInt(10, form.getS2Max());
+                    preparedStatement.setInt(11, form.getS2Incen());
+                    preparedStatement.setInt(12, form.getS3Min());
+                    preparedStatement.setInt(13, form.getS3Max());
+                    preparedStatement.setInt(14, form.getS3Incen());
+                    preparedStatement.setInt(15, form.getS4Min());
+                    preparedStatement.setInt(16, form.getS4Max());
+                    preparedStatement.setInt(17, form.getS4Incen());
+                    preparedStatement.setInt(18, form.getS5Min());
+                    preparedStatement.setInt(19, form.getS5Max());
+                    preparedStatement.setInt(20, form.getS5Incen());
+                    preparedStatement.setInt(21, form.getS1SampMin());
+                    preparedStatement.setInt(22, form.getS1SampMax());
+                    preparedStatement.setInt(23, form.getS2SampMin());
+                    preparedStatement.setInt(24, form.getS2SampMax());
+                    preparedStatement.setInt(25, form.getS3SampMin());
+                    preparedStatement.setInt(26, form.getS3SampMax());
+                    preparedStatement.setInt(27, form.getS4SampMin());
+                    preparedStatement.setInt(28, form.getS4SampMax());
+                    preparedStatement.setInt(29, form.getS5SampMin());
+                    preparedStatement.setInt(30, form.getS5SampMax());
+                }
+                
+                @Override
+                public int getBatchSize() {
+                    return form.getCity().size();
+                }
+            });
+            
+            int[] dedRows = jdbcTemplate.batchUpdate(dudSQL, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                    String cityId = form.getCity().get(i);
+                    String agency = form.getAgency().get(i);
+                    
+                    preparedStatement.setString(1, cityId);
+                    preparedStatement.setString(2, cityId);
+                    preparedStatement.setString(3, form.getBrand());
+                    preparedStatement.setString(4, agency);
+                    preparedStatement.setString(5, form.getPlan());
+                    preparedStatement.setInt(6, form.getD1Min());
+                    preparedStatement.setInt(7, form.getD1Max());
+                    preparedStatement.setInt(8, form.getD1SampMin());
+                    preparedStatement.setInt(9, form.getD1SampMax());
+                    preparedStatement.setInt(10, form.getD1Ded());
+                    preparedStatement.setInt(11, form.getD2Min());
+                    preparedStatement.setInt(12, form.getD2Max());
+                    preparedStatement.setInt(13, form.getD2SampMin());
+                    preparedStatement.setInt(14, form.getD2SampMax());
+                    preparedStatement.setInt(15, form.getD2Ded());
+                    preparedStatement.setInt(16, form.getD3Min());
+                    preparedStatement.setInt(17, form.getD3Max());
+                    preparedStatement.setInt(18, form.getD3SampMin());
+                    preparedStatement.setInt(19, form.getD3SampMax());
+                    preparedStatement.setInt(20, form.getD3Ded());
+                    preparedStatement.setInt(21, form.getD4Min());
+                    preparedStatement.setInt(22, form.getD4Max());
+                    preparedStatement.setInt(23, form.getD4SampMin());
+                    preparedStatement.setInt(24, form.getD4SampMax());
+                    preparedStatement.setInt(25, form.getD4Ded());
+                    preparedStatement.setInt(26, form.getD5Min());
+                    preparedStatement.setInt(27, form.getD5Max());
+                    preparedStatement.setInt(28, form.getD5SampMin());
+                    preparedStatement.setInt(29, form.getD5SampMax());
+                    preparedStatement.setInt(30, form.getD5Ded());
+                }
+                
+                @Override
+                public int getBatchSize() {
+                    return form.getCity().size();
+                }
+            });
+            
+            int[] updIncRows = jdbcTemplate.batchUpdate(incUpd, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                     String cityId = form.getCity().get(i);
+                    String agency = form.getAgency().get(i);
+                    
+                    preparedStatement.setString(1, form.getPlan());
+                    preparedStatement.setInt(2, form.getS1Min());
+                    preparedStatement.setInt(3, form.getS1Max());
+                    preparedStatement.setInt(4, form.getS1SampMin());
+                    preparedStatement.setInt(5, form.getS1SampMax());
+                    preparedStatement.setInt(6, form.getS1Incen());
+                    preparedStatement.setInt(7, form.getS2Min());
+                    preparedStatement.setInt(8, form.getS2Max());
+                    preparedStatement.setInt(9, form.getS2SampMin());
+                    preparedStatement.setInt(10, form.getS2SampMax());
+                    preparedStatement.setInt(11, form.getS2Incen());
+                    preparedStatement.setInt(12, form.getS3Min());
+                    preparedStatement.setInt(13, form.getS3Max());
+                    preparedStatement.setInt(14, form.getS3SampMin());
+                    preparedStatement.setInt(15, form.getS3SampMax());
+                    preparedStatement.setInt(16, form.getS3Incen());
+                    preparedStatement.setInt(17, form.getS4Min());
+                    preparedStatement.setInt(18, form.getS4Max());
+                    preparedStatement.setInt(19, form.getS4SampMin());
+                    preparedStatement.setInt(20, form.getS4SampMax());
+                    preparedStatement.setInt(21, form.getS4Incen());
+                    preparedStatement.setInt(22, form.getS5Min());
+                    preparedStatement.setInt(23, form.getS5Max());
+                    preparedStatement.setInt(24, form.getS5SampMin());
+                    preparedStatement.setInt(25, form.getS5SampMax());
+                    preparedStatement.setInt(26, form.getS5Incen());
+                    preparedStatement.setString(27, cityId);
+                    preparedStatement.setString(28, cityId);
+                    preparedStatement.setString(29, form.getBrand());
+                    preparedStatement.setString(30, agency);
+                }
+                
+                @Override
+                public int getBatchSize() {
+                    return form.getCity().size();
+                }
+            });
+            
+            int[] updDedRows = jdbcTemplate.batchUpdate(dedUpd, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                    String cityId = form.getCity().get(i);
+                    String agency = form.getAgency().get(i);
+                    
+                    preparedStatement.setString(1, form.getPlan());
+                    preparedStatement.setInt(2, form.getD1Min());
+                    preparedStatement.setInt(3, form.getD1Max());
+                    preparedStatement.setInt(4, form.getD1SampMin());
+                    preparedStatement.setInt(5, form.getD1SampMax());
+                    preparedStatement.setInt(6, form.getD1Ded());
+                    preparedStatement.setInt(7, form.getD2Min());
+                    preparedStatement.setInt(8, form.getD2Max());
+                    preparedStatement.setInt(9, form.getD2SampMin());
+                    preparedStatement.setInt(10, form.getD2SampMax());
+                    preparedStatement.setInt(11, form.getD2Ded());
+                    preparedStatement.setInt(12, form.getD3Min());
+                    preparedStatement.setInt(13, form.getD3Max());
+                    preparedStatement.setInt(14, form.getD3SampMin());
+                    preparedStatement.setInt(15, form.getD3SampMax());
+                    preparedStatement.setInt(16, form.getD3Ded());
+                    preparedStatement.setInt(17, form.getD4Min());
+                    preparedStatement.setInt(18, form.getD4Max());
+                    preparedStatement.setInt(19, form.getD4SampMin());
+                    preparedStatement.setInt(20, form.getD4SampMax());
+                    preparedStatement.setInt(21, form.getD4Ded());
+                    preparedStatement.setInt(22, form.getD5Min());
+                    preparedStatement.setInt(23, form.getD5Max());
+                    preparedStatement.setInt(24, form.getD5SampMin());
+                    preparedStatement.setInt(25, form.getD5SampMax());
+                    preparedStatement.setInt(26, form.getD5Ded());
+                    preparedStatement.setString(27, cityId);
+                    preparedStatement.setString(28, cityId);
+                    preparedStatement.setString(29, form.getBrand());
+                    preparedStatement.setString(30, agency);
+                }
+                
+                @Override
+                public int getBatchSize() {
+                    return form.getCity().size();
+                }
+            });
+            
+            if (containsPositiveValue(incRows) || containsPositiveValue(dedRows) ||
+                    containsPositiveValue(updIncRows) || containsPositiveValue(updDedRows)) {
+                flag = 2;
+                res = 0;
+            }
+            
+            if (flag == 2) {
+                jdbcTemplate.execute("COMMIT");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            flag = 0;
+            try {
+                jdbcTemplate.execute("ROLLBACK");
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
+        return flag;
+    }
+    
+    private boolean containsPositiveValue(int[] array) {
+        for (int value : array) {
+            if (value > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
