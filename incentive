@@ -273,6 +273,26 @@
         return flag;
     }
     
+    Step 1: Generate Unique Secure Links for Approval/Rejection:
+
+When sending an email to the user, generate unique links for each action (Approve/Reject). This could be done by creating a unique token for each user and record combination. This token should be securely hashed and preferably have an expiry time.
+
+You could use JWT (JSON Web Token) for this purpose as it's widely used for securely transmitting information between parties. The token will contain user details, record ID, action (approve/reject), and expiration date.
+
+Step 2: Validation of the User:
+
+When the user clicks on the link, your Spring Boot application needs to validate the token. You can do this by implementing a Controller in Spring Boot that checks the token.
+
+If the token is expired, notify the user and refuse the operation.
+If the token is valid, extract the information from the token (i.e., user details, record ID, and action).
+Step 3: Checking User Authority:
+
+After validating the user and before performing the action (approve/reject), ensure the user has the authority to perform such actions. You could do this by checking user roles or permissions in your database.
+
+Step 4: Performing the Action:
+
+After validation and authority checking, perform the action on the record in the database (Approve/Reject) and notify the user about the result of the operation.
+    
     private boolean containsPositiveValue(int[] array) {
         for (int value : array) {
             if (value > 0) {
