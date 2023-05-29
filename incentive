@@ -302,3 +302,95 @@ After validation and authority checking, perform the action on the record in the
         return false;
     }
 }
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public int addIncentive1(IncentiveForm1 form, UserForm user) {
+    String incSql = "INSERT INTO h2h_schema.incentive (State_id,City_id,brand_id,...,INS_DATE) " +
+        "VALUES ((select State_id from city_master where city_id = ?),?,?,...,date_add(now(), INTERVAL 330 MINUTE))";
+
+    String dudSQL = "INSERT INTO h2h_schema.deductions (State_id,City_id,brand_id,...,INS_DATE) " +
+        "VALUES((select State_id from city_master where city_id = ?),?,?,...,date_add(now(), INTERVAL 330 MINUTE))";
+
+    String incUpd = "update incentive " +
+        "..."
+        "where State_id = (select State_id from city_master where city_id = ?) and City_id = ? and brand_id = ? and AgencyId = ?"; 
+
+    String dedUpd = "update deductions " +
+        "..."
+        "where State_id = (select State_id from city_master where city_id = ?) and City_id = ? and brand_id = ? and AgencyId = ?";
+
+    int flag = 0;
+    try {
+        for (String cityId : form.getCity()) {
+            for(String agency : form.getAgency()){
+                int incDecExists = checkIncDedExists(cityId, form.getBrand(), agency);
+                if(incDecExists > 0){
+                    int[] updateIncResults = jdbcTemplate.batchUpdate(incUpd, new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            // set params for PreparedStatement here
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return form.getCity().size(); 
+                        }
+                    });
+
+                    int[] updateDedResults = jdbcTemplate.batchUpdate(dedUpd, new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            // set params for PreparedStatement here
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return form.getCity().size(); 
+                        }
+                    });
+                    
+                    if(getRowsAffected(updateIncResults) > 0 && getRowsAffected(updateDedResults) > 0){ flag = 2; }
+                } else {
+                    int[] incResults = jdbcTemplate.batchUpdate(incSql, new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            // set params for PreparedStatement here
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return form.getCity().size(); 
+                        }
+                    });
+
+                    int[] dedResults = jdbcTemplate.batchUpdate(dudSQL, new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            // set params for PreparedStatement here
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return form.getCity().size(); 
+                        }
+                    });
+                    
+                    if(getRowsAffected(incResults) > 0 && getRowsAffected(dedResults) > 0){ flag = 2; }
+                }
+            }
+        }
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+        flag = 0;
+    }
+    return flag;
+}
+
+private int checkIncDedExists(String cityId, String brand, String agency) {
+    // Implement this method
+}
+
+private int getRowsAffected(int[] batchUpdateResults) {
+    // Implement this method
+}
