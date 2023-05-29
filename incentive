@@ -407,3 +407,46 @@ private int getRowsAffected(int[] batchUpdateResults) {
     }
     return totalAffectedRows;
 }
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class IncentiveService {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public void fetchIncDed(IncentiveForm1 form, UserForm user) {
+        String incDedSQL = "myQuery";
+        int idx = 0;
+
+        int slbCnt = 0, slbDCnt = 0;
+
+        // Using anonymous class to define RowMapper
+        RowMapper<Object> rowMapper = new RowMapper<Object>() {
+            @Override
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                /*Incentives*/
+                // Similar to your existing logic
+                // just replace `res` with `rs`
+                
+                /*Deductions*/
+                // Similar to your existing logic
+                // just replace `res` with `rs`
+
+                form.setSlbCnt(slbCnt);
+                form.setSlbDCnt(slbDCnt);
+
+                return null; // As we don't need the returned object, just setting the form object
+            }
+        };
+
+        if(form.getAgency().length > 1){
+            jdbcTemplate.query(incDedSQL, new Object[]{form.getBrand(), form.getAgency().length, form.getAgency().length}, rowMapper);
+        }else{
+            jdbcTemplate.query(incDedSQL, new Object[]{form.getBrand(), form.getCity().length, form.getAgency().length}, rowMapper);
+        }
+    }
+}
