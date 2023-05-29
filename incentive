@@ -398,3 +398,12 @@ public int checkIncDedExists(String city, String brand, String agId) {
     String chkIncSql = "select count(*) from incentive where City_id = ? and brand_id = ? and AgencyId = ?";
     return jdbcTemplate.queryForObject(chkIncSql, new Object[]{city, brand, agId}, Integer.class);
 }
+private int getRowsAffected(int[] batchUpdateResults) {
+    int totalAffectedRows = 0;
+    for (int rows : batchUpdateResults) {
+        if (rows > 0) {
+            totalAffectedRows += rows;
+        }
+    }
+    return totalAffectedRows;
+}
