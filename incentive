@@ -394,3 +394,7 @@ private int checkIncDedExists(String cityId, String brand, String agency) {
 private int getRowsAffected(int[] batchUpdateResults) {
     // Implement this method
 }
+public int checkIncDedExists(String city, String brand, String agId) {
+    String chkIncSql = "select count(*) from incentive where City_id = ? and brand_id = ? and AgencyId = ?";
+    return jdbcTemplate.queryForObject(chkIncSql, new Object[]{city, brand, agId}, Integer.class);
+}
