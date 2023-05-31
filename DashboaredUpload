@@ -1,0 +1,78 @@
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public List<String[]> addValidatedPlan(List<String[]> planList) {
+    List<String[]> errorMessageList = new ArrayList<>();
+    
+    for (String[] planArr : planList) {
+        if (planArr[15] != null) {
+            errorMessageList.add(planArr);
+        } else {
+            String state = planArr[0];
+            String city = planArr[1];
+            String brandName = planArr[2];
+            String agency = planArr[14];
+            Double NOP = Double.parseDouble(planArr[6]);
+            int planned = (int) Math.round(NOP);
+            planArr[6] = String.valueOf(planned);
+            Double Planned_Contacts = Double.parseDouble(planArr[9]);
+            int plan_contact = (int) Math.round(Planned_Contacts);
+            planArr[9] = String.valueOf(plan_contact);
+            Double Planned_Conversion = Double.parseDouble(planArr[10]);
+            int plan_conversion = (int) Math.round(Planned_Conversion);
+            planArr[10] = String.valueOf(plan_conversion);
+            Double avg_sale_promo = Double.parseDouble(planArr[11]);
+            int avg_sale_prom = (int) Math.round(avg_sale_promo);
+            planArr[11] = String.valueOf(avg_sale_prom);
+            Double span = Double.parseDouble(planArr[12]);
+            int span_activity = (int) Math.round(span);
+            planArr[12] = String.valueOf(span_activity);
+            Double man_days = Double.parseDouble(planArr[13]);
+            int plan_man_days = (int) Math.round(man_days);
+            planArr[13] = String.valueOf(plan_man_days);
+            if ((NOP <= 0) || (Planned_Conversion <= 0) || (Planned_Contacts <= 0) || (avg_sale_promo <= 0) || (span <=0) || (man_days <= 0)) {
+                planArr[15] = "cell contains negative value or zero value ";
+                resetPlanArr(planArr, state, city, brandName, agency);
+            }
+            else if (this.validateDetails(planArr, errorMessageList)) {
+
+                int plan_id = this.checkDuplicatePlan(planArr);
+                if (plan_id != 0) {
+                    String sql = "UPDATE dash_planned SET  state_cd=?,city_id=?,brand_id=?,agency_id=?,planned_conversion=?,"
+                            + "planned_contacts=?,avg_sale_promo=?,planned_promo=?,planned_mandays=?,span_of_activity=? where dp_id='"
+                            + plan_id + "'";
+                    jdbcTemplate.update(sql, Integer.parseInt(planArr[0]), Integer.parseInt(planArr[1]), Integer.parseInt(planArr[2]), Integer.parseInt(planArr[14]), 
+                                        planArr[10], planArr[9], planArr[11], planArr[6], planArr[13], planArr[12]);
+                    planArr[15] = "updated Successfully";
+                } else {
+                    String sqlUpdate = "Insert into dash_planned(state_cd,city_id,brand_id,agency_id,planned_conversion,"
+                            + "planned_contacts,avg_sale_promo,planned_promo,planned_mandays,span_of_activity) values(?,?,?,?,?,?,?,?,?,?)";
+                    jdbcTemplate.update(sqlUpdate, Integer.parseInt(planArr[0]), Integer.parseInt(planArr[1]), Integer.parseInt(planArr[2]), Integer.parseInt(planArr[14]), 
+                                        planArr[10], planArr[9], planArr[11], planArr[6], planArr[13], planArr[12]);
+                    planArr[15] = "inserted Successfully";
+                }
+                resetPlanArr(planArr, state, city, brandName, agency);
+            } else {
+                resetPlanArr(planArr, state, city, brandName, agency);
+            }
+        }
+    }
+    return planList;
+}
+
+private void resetPlanArr(String[] planArr, String state, String city, String brandName, String agency){
+    planArr[0] = state;
+    planArr[1] = city;
+    planArr[2] = brandName;
+    planArr[3] = planArr[6];
+    planArr[4] = planArr[9];
+    planArr[5] = planArr[10];
+    planArr[6] = planArr[11];
+    planArr[7] = planArr[12];
+    planArr[8] = planArr[13];
+    planArr[9] = agency;
+    planArr[10]=planArr[15];
+    for(int i=11;i<=15;i++){
+        planArr[i]=null;
+    }
+}
