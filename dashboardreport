@@ -1,0 +1,5 @@
+ public List<User> getDashAgencies() {
+        String sql = "SELECT user_name, user_id FROM user_master WHERE user_type = 9 and dash_report = 1 ORDER BY user_name ASC";
+
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
+    }
