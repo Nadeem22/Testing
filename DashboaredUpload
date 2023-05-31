@@ -76,3 +76,23 @@ private void resetPlanArr(String[] planArr, String state, String city, String br
         planArr[i]=null;
     }
 }
+private int checkDuplicatePlan(String[] planArr) {
+    String state = planArr[0];
+    String city = planArr[1];
+    String brand = planArr[2];
+    String agency = planArr[14];
+    Integer plan_id;
+
+    String sql = "select dp_id from dash_planned where state_cd = ? and city_id = ? and agency_id = ? and brand_id = ?";
+    try {
+        plan_id = jdbcTemplate.queryForObject(sql, new Object[]{state, city, agency, brand}, Integer.class);
+    } catch (EmptyResultDataAccessException e) {
+        plan_id = null;
+    }
+
+    if (plan_id == null) {
+        return 0;
+    } else {
+        return plan_id;
+    }
+}
