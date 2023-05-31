@@ -96,3 +96,67 @@ private int checkDuplicatePlan(String[] planArr) {
         return plan_id;
     }
 }
+private int getBrand(String brandName) {
+    Integer brandId;
+
+    String sql = "Select Field_Data_ID from brands where Field_Data_Name = ? and disabled ='N';";
+    try {
+        brandId = jdbcTemplate.queryForObject(sql, new Object[]{brandName}, Integer.class);
+    } catch (EmptyResultDataAccessException e) {
+        brandId = null;
+    }
+
+    if (brandId == null) {
+        return -1;
+    } else {
+        return brandId;
+    }
+    }
+    private int getState(String stateName) {
+    Integer stateId;
+
+    String sql = "Select state_id from state_master where state_name = ?";
+    try {
+        stateId = jdbcTemplate.queryForObject(sql, new Object[]{stateName}, Integer.class);
+    } catch (EmptyResultDataAccessException e) {
+        stateId = null;
+    }
+
+    if (stateId == null) {
+        return -1;
+    } else {
+        return stateId;
+    }
+}
+private int getCity(String cityName, int statecode) {
+    Integer cityId;
+
+    String sql = "Select city_id from city_master where city_name = ? and state_id=?";
+    try {
+        cityId = jdbcTemplate.queryForObject(sql, new Object[]{cityName, statecode}, Integer.class);
+    } catch (EmptyResultDataAccessException e) {
+        cityId = null;
+    }
+
+    if (cityId == null) {
+        return -1;
+    } else {
+        return cityId;
+    }
+}
+private int getAgency(String agency) {
+    Integer agencyId;
+
+    String sql = "Select user_id from user_master where First_name = ? and disabled ='N' and user_type=9";
+    try {
+        agencyId = jdbcTemplate.queryForObject(sql, new Object[]{agency}, Integer.class);
+    } catch (EmptyResultDataAccessException e) {
+        agencyId = null;
+    }
+
+    if (agencyId == null) {
+        return -1;
+    } else {
+        return agencyId;
+    }
+}
