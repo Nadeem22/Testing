@@ -1,0 +1,83 @@
+ public List<Dashboard> getDashboardResults(String fromDate, String toDate, String agId) {
+        List<Dashboard> trackList = new ArrayList<>();
+
+        if(fromDate != null && !fromDate.equals("") && toDate != null && !toDate.equals("")) {
+
+            String dashboardQuery = "myquery----1";
+            dashboardQuery += " and FROM_DATE = ? and TO_DATE = ?";
+            trackList.addAll(jdbcTemplate.query(dashboardQuery, new Object[]{fromDate, toDate}, (rs, rowNum) -> mapDashboard(rs)));
+
+            String dash_plannedmissingdata = "myquery-------------------2";
+            trackList.addAll(jdbcTemplate.query(dash_plannedmissingdata, (rs, rowNum) -> mapPlannedMissingData(rs)));
+
+            if(!trackList.isEmpty() && trackList.size() > 1){
+                Collections.sort(trackList, new BrandComparator());
+            }
+        }
+        return trackList;
+    }
+
+    private Dashboard mapDashboard(ResultSet rs) throws SQLException {
+     Dashboard dashboard = new Dashboard();
+    dashboard.setZone(rs.getString("zone"));
+    dashboard.setState(rs.getString("state_name"));
+    dashboard.setCity(rs.getString("city_name"));
+    dashboard.setBrand(rs.getString("Brand"));
+    dashboard.setPlannedConversions(rs.getDouble("PlannedConversion"));
+    dashboard.setPlannedContacts(rs.getInt("PlannedContacts"));
+    dashboard.setStsRollout(rs.getString("stsRollout"));
+    dashboard.setTcp(rs.getInt("tpc"));
+    dashboard.setTconts(rs.getInt("tconts"));
+    dashboard.setTpp(rs.getInt("tpp"));
+    dashboard.setTps(rs.getInt("tps"));
+    dashboard.setTpt(rs.getInt("tpt"));
+    dashboard.setTpqua(rs.getInt("tpqua"));
+    dashboard.setTpqui(rs.getInt("tpqui"));
+    dashboard.setValidSamp(rs.getInt("validSamp"));
+    dashboard.setTargetCompletion(rs.getDouble("TargetCompletion"));
+    dashboard.setManDays(rs.getInt("Mandays"));
+    dashboard.setProductivity(rs.getDouble("Productivity"));
+    dashboard.setPlannedAvgSale(rs.getInt("PlannedAvgSalePromo"));
+    dashboard.setAvgSale(rs.getDouble("avgSale"));
+    dashboard.setLast5Days(rs.getDouble("last5Day"));
+    dashboard.setPlanPro(rs.getInt("planPro"));
+    dashboard.setWkAvgPro(rs.getInt("wkAvgPro"));
+    dashboard.setWkAvgShort(rs.getInt("wkAvgShort"));
+    return dashboard;
+    }
+
+    private Dashboard mapPlannedMissingData(ResultSet rs) throws SQLException {
+         Dashboard dashboard = new Dashboard();
+    dashboard.setZone(rs.getString("zone"));
+    dashboard.setState(rs.getString("state_name"));
+    dashboard.setCity(rs.getString("city_name"));
+    dashboard.setBrand(rs.getString("Brand"));
+    dashboard.setPlannedConversions(rs.getDouble("PlannedConversion"));
+    dashboard.setPlannedContacts(rs.getInt("PlannedContacts"));
+    dashboard.setStsRollout(null);
+    dashboard.setTcp(0);
+    dashboard.setTconts(0);
+    dashboard.setTpp(0);
+    dashboard.setTps(0);
+    dashboard.setTpt(0);
+    dashboard.setTpqua(0);
+    dashboard.setTpqui(0);
+    dashboard.setTargetCompletion(0.0);
+    dashboard.setManDays(0);
+    dashboard.setProductivity(0.0);
+    dashboard.setPlannedAvgSale(rs.getInt("PlannedAvgSalePromo"));
+    dashboard.setAvgSale(0.0);
+    dashboard.setLast5Days(0.0);
+    dashboard.setValidSamp(0);
+    dashboard.setPlanPro(rs.getInt("planPro"));
+    dashboard.setWkAvgPro(0);
+    dashboard.setWkAvgShort(0);
+    return dashboard;
+    }
+
+    public static class BrandComparator implements Comparator<Dashboard> {
+        @Override
+        public int compare(Dashboard o1, Dashboard o2) {
+            return o1.getBrand().toLowerCase().compareTo(o2.getBrand().toLowerCase());
+        }
+    }
