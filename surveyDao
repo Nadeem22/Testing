@@ -189,3 +189,35 @@ public class UserRepository {
         });
     }
 }
+ public String disableSurveyStatus(String slId, String disableStatus) {
+        try {
+            String sql = "UPDATE survey SET disabled = ? WHERE slno = ?";
+
+            String status = "0";
+            if (!validateSurveyCombination(slId)) { // Assuming validateSurveyCombination method is in the same repository
+                if ("0".equals(disableStatus)) {
+                    status = "1";
+                } else {
+                    status = "0";
+                }
+
+                int result = jdbcTemplate.update(sql, status, slId);
+
+                if (result == 1) {
+                    return "success";
+                } else {
+                    return "failed";
+                }
+            } else {
+                return "alreadyExists";
+            }
+
+        } catch (DataAccessException dae) {
+            dae.printStackTrace();
+            return "error";
+        }
+    }
+
+    public boolean validateSurveyCombination(String slId) {
+        // Implement your validation here
+    }
