@@ -102,3 +102,90 @@ if (null != state && state.equals("-1")) {
         });
     }
 }
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+@Repository
+public class StateRepository {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public List<State> getStateDropdown() {
+        String sql = "select state_name, state_id from state_master";
+
+        return jdbcTemplate.query(sql, new RowMapper<State>() {
+            @Override
+            public State mapRow(ResultSet rs, int rowNum) throws SQLException {
+                State state = new State();
+                state.setStateName(rs.getString("state_name"));
+                state.setStateId(rs.getString("state_id"));
+                return state;
+            }
+        });
+    }
+}
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+@Repository
+public class BrandRepository {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public List<Brands> getAllBrands() {
+        String sql = "SELECT field_data_id, Field_Data_Name, primary_variant, secondary_variant, sampling FROM brands where field_data_id not in (21111, 22222) and disabled='N' order by 2";
+
+        return jdbcTemplate.query(sql, new RowMapper<Brands>() {
+            @Override
+            public Brands mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Brands brand = new Brands();
+                brand.setBrandId(rs.getString(1));
+                brand.setBrandName(rs.getString(2));
+                brand.setPrimaryVariant(rs.getString(3));
+                brand.setSecondaryVariant(rs.getString(4));
+                brand.setHasSampling(rs.getString(5));
+                return brand;
+            }
+        });
+    }
+}
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+@Repository
+public class UserRepository {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public List<User> getAllAgencies() {
+        String sql = "SELECT user_name, user_id FROM user_master WHERE user_type in (9) ORDER BY user_name ASC";
+
+        return jdbcTemplate.query(sql, new RowMapper<User>() {
+            @Override
+            public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+                User user = new User();
+                user.setUserName(rs.getString("user_name"));
+                user.setUserId(rs.getInt("user_id"));
+                return user;
+            }
+        });
+    }
+}
