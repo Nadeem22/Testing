@@ -221,3 +221,15 @@ public class UserRepository {
     public boolean validateSurveyCombination(String slId) {
         // Implement your validation here
     }
+ public boolean validateSurveyCombination(String slId){
+        String sql = "SELECT a.* FROM survey a INNER JOIN survey b ON a.agencyId = b.agencyId " +
+                "AND a.brandId = b.brandId AND a.cityId = b.cityId AND a.user_type = b.user_type AND a.survey_id != b.survey_id " +
+                "WHERE a.disabled = 0 AND b.slno = ?";
+
+        try {
+            jdbcTemplate.queryForObject(sql, new Object[]{slId}, (rs, rowNum) -> rs.getInt(1)); // you only need to know whether there is a result, so we can ignore the result data
+            return true; // if there is a result, return true
+        } catch (EmptyResultDataAccessException e) {
+            return false; // if there is no result, return false
+        }
+    }
