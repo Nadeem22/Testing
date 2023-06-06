@@ -1,0 +1,104 @@
+ public List<Survey> getSurveyDropdown() {
+    String sql = "SELECT distinct SURVEY_ID FROM SURVEY";
+
+    return jdbcTemplate.query(sql, new SurveyRowMapper());
+  }
+
+  class SurveyRowMapper implements RowMapper<Survey> {
+    @Override
+    public Survey mapRow(ResultSet rs, int rowNum) throws SQLException {
+      Survey survey = new Survey();
+      survey.setSurveyId(rs.getString("SURVEY_ID"));
+      return survey;
+    }
+  }
+   public List<Survey> getSurveyDetails(String surveyId, String fromDate, String toDate,String userType, String city,String state,String brand,String agency, String page, UserForm loginUser, String value, String param) {
+        String query = "";
+
+			query = "select slno,survey_id,(select user_name from user_master where user_id = sm.agencyId) as Agency, "
+					+" (select Field_Data_Name from brands where Field_Data_Id = sm.brandId) as Brand, "
+					+" (select city_name from city_master where city_id = sm.cityId) as City, "
+					+" (case when sm.user_type = 4 then 'Promoter' else (case when sm.user_type = 3 then 'Supervisor' else 'Both' END) END) as UserType, "
+					+" sm.disabled,date_format(sm.INS_DATE, '%Y-%m-%d %H:%i:%s'),"
+					+" (select state_name from state_master where state_id = stateId) as state from survey sm where 1=1 ";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        
+        if (page.equals("searchPage")) {
+            if (fromDate != null && toDate != null && !fromDate.equals("")
+                        && !toDate.equals("")) {
+                query += " AND sm.INS_DATE between :fromDate AND :toDate";
+                parameters.addValue("fromDate", fromDate);
+                parameters.addValue("toDate", toDate);
+            }
+            if ( null != surveyId && surveyId.equals("-1")) {
+                query += " AND sm.survey_id like :surveyId ";
+                parameters.addValue("surveyId", surveyId);
+            }
+            if (null != userType && !userType.equals("-1")) {
+    query += " AND sm.user_type = :userType";
+    parameters.addValue("userType", userType);
+}
+if (null != city && !city.equals("-1")) {
+    query += " AND sm.cityId = :city";
+    parameters.addValue("city", city);
+}
+if (null != brand && brand.equals("-1")) {
+    query += " AND sm.brandId = :brand";
+    parameters.addValue("brand", brand);
+}
+if (null != agency && agency.equals("-1")) {
+    query += " AND sm.agencyId = :agency";
+    parameters.addValue("agency", agency);
+}
+if (null != state && state.equals("-1")) {
+    query += " AND sm.stateId = :state";
+    parameters.addValue("state", state);
+}
+        } else {
+            query += " AND date(sm.INS_DATE) = date(now())";
+        }
+        
+        query = query + " order by sm.agencyId,sm.brandId,sm.stateId,sm.cityId ";
+        
+        // Handling limit part
+        int start = configDataUtil.getReportProperties("report_start");
+        int limitValue = configDataUtil.getReportProperties(param);
+        if (!value.equals("0")) {
+            int values = Integer.parseInt(value);
+            query = query + "  limit :start , :limit";
+            parameters.addValue("start", values * limitValue);
+            parameters.addValue("limit", limitValue + 1);
+        } else {
+            query = query + " limit :start , :limit";
+            parameters.addValue("start", start);
+            parameters.addValue("limit", limitValue + 1);
+        }
+
+        return namedParameterJdbcTemplate.query(query, parameters, new RowMapper<Survey>() {
+            @Override
+            public Survey mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Survey survey = new Survey();
+                survey.setSlno(rs.getInt(1));
+                survey.setSurveyId(rs.getString(2));
+                survey.setAgency(rs.getString(3));
+                survey.setBrand(rs.getString(4));
+                survey.setCity(rs.getString(5));
+                survey.setState(rs.getString(9));
+                survey.setUserType(rs.getString(6));
+                if(rs.getString(7).equals("0")){
+                    survey.setDisabled("\nN\n");
+                } else {
+                    survey.setDisabled("\nY\n");
+                }
+                if(rs.getString(7).equals("0")){
+                    survey.setStatus("N");
+                } else {
+                    survey.setStatus("Y");
+                }
+                survey.setDate(rs.getString(8));
+                return survey;
+            }
+        });
+    }
+}
