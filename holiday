@@ -31,3 +31,23 @@ public List<User> getAllActiveAgencies(){
 
         return yearList;
     }
+ public List<Holiday> getHolidayList(String date, String state, String agency) {
+        String query = "SELECT um.user_id as agency, hl.holiday_date, hl.holiday, st.state_name as state " +
+                "FROM holiday_list hl " +
+                "INNER JOIN user_master um ON um.user_id = hl.agency " +
+                "INNER JOIN state_master st ON st.state_id = hl.state " +
+                "WHERE agency = ? AND hl.state = ? AND year(holiday_date) = ? " +
+                "ORDER BY holiday_date";
+
+        return jdbcTemplate.query(query, new Object[]{agency, state, date}, new RowMapper<Holiday>() {
+            @Override
+            public Holiday mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Holiday holiday = new Holiday();
+                holiday.setAgency(rs.getString("agency"));
+                holiday.setDate(rs.getDate("holiday_date"));
+                holiday.setHoliday(rs.getString("holiday"));
+                holiday.setState(rs.getString("state"));
+                return holiday;
+            }
+        });
+    }
