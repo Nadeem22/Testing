@@ -1,0 +1,33 @@
+public List<User> getAllActiveAgencies(){
+        String sql = "SELECT user_name,user_id FROM user_master WHERE user_type=9 and user_id not in (select user_id from dummy_agencies) ORDER BY user_name ASC";
+
+        return jdbcTemplate.query(sql, new RowMapper<User>() {
+            public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+                User user = new User();
+                user.setUserName(rs.getString("user_name"));
+                user.setUserId(rs.getInt("user_id"));
+                return user;
+            }
+        });
+    }
+    public List<String> getYear() {
+        String sql = "SELECT PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM NOW()), 201401) AS TotalMonths";
+        List<String> yearList = new ArrayList<>();
+
+        Integer totalMonths = jdbcTemplate.queryForObject(sql, Integer.class);
+        if (totalMonths == null) {
+            totalMonths = 0;
+        }
+
+        for (int i = 3; i > 1; i--) {
+            sql = "SELECT YEAR(Date_Add('2014-01-01', INTERVAL " + (totalMonths) + " MONTH)) as yrFn";
+            Map<String, Object> result = jdbcTemplate.queryForMap(sql);
+
+            if (result != null) {
+                yearList.add(String.valueOf(result.get("yrFn")));
+            }
+            totalMonths = totalMonths - 12;
+        }
+
+        return yearList;
+    }
