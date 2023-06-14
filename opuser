@@ -81,3 +81,56 @@ public List<User> getUserOp(String userName, String userType, String city, Strin
 
     return userList;
 }
+List<User> userList = namedParameterJdbcTemplate.query(query, parameters, (rs, rowNum) -> {
+    User user = new User();
+    user.setId(rs.getInt(1));
+    user.setUserId(rs.getInt(1));
+    user.setUserName(rs.getString(2));
+    int UserType = rs.getInt(3);
+    user.setUserType(UserType);
+    user.setUserTypeStr(modelMap.get(UserType));
+    user.setDisabled(rs.getString(5).equals("L") && !param.equals("smsExcel_limit") ? "\nL\n" : rs.getString(5));
+    user.setAddress(rs.getString(6));
+    user.setCity(rs.getString(7));
+    user.setFirstName((rs.getString(8)));
+    user.setLastName(rs.getString(9));
+    user.setTeamName(rs.getString(10));
+    user.setEdit("\nEdit\n");
+    user.setDelete("\nDelete\n");
+    user.setIsActive((rs.getInt(11) == 0) ? "InActive" : "\nActive\n");
+    if (!loginUser.getUserType().equals("1")) {
+        user.setImei(rs.getString(12));
+        user.setdName(rs.getString(13));
+        user.setdModel(rs.getString(14));
+        user.setApkVer(rs.getString(15));
+        if (user.getUserType() >= 2 && user.getUserType() <= 6) {
+            user.setAppListReq("\n" + ((rs.getInt(16) == 1) ? "Active" : "InActive") + "\n");
+            user.setAppListRep("\nExport\n");
+        }
+
+        user.setName(rs.getString(17));
+        user.setAge(rs.getInt(18));
+        user.setDob(rs.getString(19));
+        user.setWorkExp(rs.getString(20));
+        user.setDoj(rs.getString(21));
+        if (loginUser.getUserType().equals("9")) {
+            String promoImgPath = rs.getString(22);
+            String kycImagePath = rs.getString(23);
+            String Isrejected = rs.getString(24);
+
+            if (null != rs.getString(24) && rs.getString(24).equals("Y")) {
+
+                Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+                if (null != promoImgPath) {
+                    String path = "\nView Image\n";
+                    user.setUserImage(path);
+                }
+
+            } else if (null != rs.getString(24) && rs.getString(24).equals("N")) {
+                user.setUserImage("N/A");
+            }
+        }
+
+    }
+    return user;
+});
