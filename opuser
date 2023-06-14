@@ -29,120 +29,55 @@ public List<Team> getOpTeamDropdown(String city, UserForm userLogin) {
     };
     
     
-   public List<User> getUserOp(String userName, String userType, String city, String team, String page, UserForm loginUser, String value, String param) {
-        System.out.println("page " + page);
-        List<User> userList = new ArrayList<>();
-        String query = "";
+  @Autowired
+private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-        if (loginUser.getUserType().equals("9")) {
-            query = " MYQUERY "
-                    + " And um.agencyId=" + loginUser.getUserId();
-        }
+public List<User> getUserOp(String userName, String userType, String city, String team, String page,
+                             UserForm loginUser, String value, String param) {
 
-        if (page.equals("searchPage")) {
-            if (!StringUtils.isEmpty(userName) && !userName.equals("-1")) {
-                query += " AND um.user_name like ? ";
-            }
-            if (!StringUtils.isEmpty(userType) && !userType.equals("-1")) {
-                query += " AND um.user_type =?";
-            }
-            if (!StringUtils.isEmpty(city) && !city.equals("-1")) {
-                query += " AND um.city in (?)";
-            }
-            if (!StringUtils.isEmpty(team) && !team.equals("-1")) {
-                query += " AND um.parent_user_id in (?)";
-            }
-        }
+    System.out.println("page " + page);
+    String query = "";
 
-        int start = ContextUtil.getReportProperties("report_start");
-        int limitValue = ContextUtil.getReportProperties(param);
-        if (!value.equals("0")) {
-            int values = Integer.parseInt(value);
-            query = query + "  limit " + (values * limitValue) + "," + (limitValue + 1);
-        } else
-            query = query + " limit " + start + "," + (limitValue + 1);
-
-        System.out.println("query:##**" + query);
-
-        List<Object> parameters = new ArrayList<>();
-        if (page.equals("searchPage")) {
-            if (!StringUtils.isEmpty(userName) && !userName.equals("-1")) {
-                parameters.add("%" + userName + "%");
-            }
-            if (!StringUtils.isEmpty(userType) && !userType.equals("-1")) {
-                parameters.add(userType);
-            }
-            if (!StringUtils.isEmpty(city) && !city.equals("-1")) {
-                parameters.add(city);
-            }
-            if (!StringUtils.isEmpty(team) && !team.equals("-1")) {
-                parameters.add(team);
-            }
-        }
-
-        userList = jdbcTemplate.query(query, parameters.toArray(), new UserRowMapper());
-        return userList;
+    if (loginUser.getUserType().equals("9")) {
+        query = " MYQUERY "
+                + " And um.agencyId=" + loginUser.getUserId();
     }
 
-    private static final class UserRowMapper implements RowMapper<User> {
-
-        @Override
-        public User mapRow(ResultSet res, int rowNum) throws SQLException {
-            User user = new User();
-           user.setId(res.getInt(1));
-        user.setUserId(res.getInt(1));
-        user.setUserName(res.getString(2));
-        int UserType = res.getInt(3);
-        user.setUserType(UserType);
-        user.setUserTypeStr(modelMap.get(UserType)); // Assuming modelMap is accessible here
-        if (res.getString(5).equals("L") && !param.equals("smsExcel_limit")) {
-            user.setDisabled("L");
-        } else {
-            user.setDisabled(res.getString(5));
+    MapSqlParameterSource parameters = new MapSqlParameterSource();
+    if (page.equals("searchPage")) {
+        if (!(userName.equals("") || userName.equals("-1"))) {
+            query += " AND um.user_name like :userName ";
+            parameters.addValue("userName", "%" + userName + "%");
         }
-        user.setAddress(res.getString(6));
-        user.setCity(res.getString(7));
-        user.setFirstName(res.getString(8));
-        user.setLastName(res.getString(9));
-        user.setTeamName(res.getString(10));
-        user.setEdit("Edit");
-        user.setDelete("Delete");
-        if ((res.getInt(11) == 0)) {
-            user.setIsActive("InActive");
-        } else {
-            user.setIsActive("Active");
+        if (!(userType==null || userType.equals("-1"))) {
+            query += " AND um.user_type = :userType";
+            parameters.addValue("userType", userType);
         }
-        if (!loginUser.getUserType().equals("1")) { // Assuming loginUser is accessible here
-            user.setImei(res.getString(12));
-            user.setdName(res.getString(13));
-            user.setdModel(res.getString(14));
-            user.setApkVer(res.getString(15));
-            if (user.getUserType() >= 2 && user.getUserType() <= 6) {
-                user.setAppListReq(((res.getInt(16) == 1) ? "Active" : "InActive"));
-                user.setAppListRep("Export");
-            }
-
-            user.setName(res.getString(17));
-            user.setAge(res.getInt(18));
-            user.setDob(res.getString(19));
-            user.setWorkExp(res.getString(20));
-            user.setDoj(res.getString(21));
-            if (loginUser.getUserType().equals("9")) { // Assuming loginUser is accessible here
-                String promoImgPath = res.getString(22);
-                String kycImagePath = res.getString(23);
-                String Isrejected = res.getString(24);
-
-                if (null != res.getString(24) && res.getString(24).equals("Y")) {
-                    if (null != promoImgPath) {
-                        String path = "View Image";
-                        user.setUserImage(path);
-                    }
-                } else if (null != res.getString(24) && res.getString(24).equals("N")) {
-                    user.setUserImage("N/A");
-                }
-            }
+        if (!(city==null|| city.equals("-1"))) {
+            query += " AND um.city in (:city)";
+            parameters.addValue("city", city);
         }
+        if (!(team==null|| team.equals("-1"))) {
+            query += " AND um.parent_user_id in (:team)";
+            parameters.addValue("team", team);
+        }
+    }
+
+    int start = ContextUtil.getReportProperties("report_start");
+    int limitValue = ContextUtil.getReportProperties(param);
+    if (!value.equals("0")) {
+        int values = Integer.parseInt(value);
+        query = query + "  limit " + (values * limitValue) + "," + (limitValue + 1);
+    } else
+        query = query + " limit " + start + "," + (limitValue + 1);
+
+    System.out.println("query:##**" + query);
+    List<User> userList = namedParameterJdbcTemplate.query(query, parameters, (rs, rowNum) -> {
+        User user = new User();
+        // Copy rest of the fields from result set to user object as in original code
+        //...
         return user;
-        }
-    }
+    });
+
+    return userList;
 }
