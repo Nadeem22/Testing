@@ -196,3 +196,62 @@ List<User> userList = namedParameterJdbcTemplate.query(query, parameters, (rs, r
             return team;
         }
     }
+   public String addUserOp(OpUserForm user, String agencyId) {
+        String sql = "INSERT INTO USER_MASTER(user_name, user_type, user_password, disabled, First_name, Last_name, phone, address, city, state, parent_user_id,agencyId, user_created) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,date_add(now(), INTERVAL 330 MINUTE))";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        
+        String sqlUpdate = "UPDATE USER_MASTER SET PARENT_USER_ID = (SELECT TEAM_ID FROM h2h_TEAMS WHERE TEAM_NAME=?) WHERE USER_NAME=?";
+
+        try {
+            transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+                @Override
+                protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                    jdbcTemplate.update(con -> {
+                        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, user.getUserName().trim());
+                        ps.setString(2, user.getUserType());
+                        ps.setString(3, user.getUserPassword().trim());
+                        ps.setString(4, "N");
+                        ps.setString(5, user.getFirstName());
+                        ps.setString(6, user.getLastName());
+                        ps.setString(7, user.getPhoneNo());
+                        ps.setString(8, user.getAddress());
+                        ps.setString(9, user.getCity());
+                        ps.setString(10, user.getState());
+                        ps.setString(11, user.getUserType().equals("21") ? "0" : user.getTeamNameDrop());
+                        ps.setString(12, agencyId);
+                        return ps;
+                    }, keyHolder);
+
+                    int id = keyHolder.getKey().intValue();
+
+                    if ("2".equals(user.getUserType()) || "3".equals(user.getUserType()) || "5".equals(user.getUserType())) {
+                        if (user.getTeamNameDrop() != null && !user.getTeamNameDrop().equals("-1")) {
+                            jdbcTemplate.update("UPDATE h2h_TEAMS SET SUP_USER_ID = (SELECT USER_ID FROM USER_MASTER WHERE USER_NAME = ?) WHERE TEAM_ID = ?", user.getUserName(), user.getTeamNameDrop());
+                        } else if (user.getTeamNameText() != null && !user.getTeamNameText().trim().isEmpty()) {
+                            jdbcTemplate.update("INSERT INTO h2h_TEAMS(TEAM_NAME, CITY_ID, SUP_USER_ID,agencyId) VALUES(?, ?, (SELECT USER_ID FROM USER_MASTER WHERE USER_NAME = ?), ?)",
+                                    user.getTeamNameText().trim(), user.getCity(), user.getUserName().trim(), agencyId);
+                            jdbcTemplate.update("INSERT INTO op_team(op_team_id,TEAM_NAME) VALUES((SELECT team_id FROM h2h_teams WHERE team_NAME = ?), ?)",
+                                    user.getTeamNameText().trim(), user.getTeamNameText().trim());
+                        }
+                    }
+
+                    if (user.getMulTeamNameDrop() != null && user.getMulTeamNameDrop().length != 0
+                            && "11".equals(user.getUserType())) {
+                        mapTeamNames(user.getMulTeamNameDrop(), String.valueOf(id), agencyId);
+                    }
+
+                    if ("2".equals(user.getUserType()) || "3".equals(user.getUserType()) || "5".equals(user.getUserType())) {
+                        if (user.getTeamNameText() != null && !user.getTeamNameText().isEmpty()) {
+                            jdbcTemplate.update(sqlUpdate, user.getTeamNameText().trim(), user.getUserName());
+                        }
+                    }
+                }
+            });
+
+            return "success";
+        } catch (Exception e) {
+            // log your exception
+            return null;
+        }
+    }
