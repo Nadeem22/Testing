@@ -134,3 +134,65 @@ List<User> userList = namedParameterJdbcTemplate.query(query, parameters, (rs, r
     }
     return user;
 });
+  public void loadDummyTeamNamesForOpSupervisor(HttpSession session, String city) {
+        UserForm loginUser = (UserForm) session.getAttribute("userLogin");
+        List<Team> teamList;
+        String sql = "SELECT t.TEAM_NAME, t.op_TEAM_ID FROM op_team t WHERE t.sup_user_id=0 and t.CITY_ID = ?";
+
+        if (loginUser.getUserType().equals("1")) {
+            sql += " order by t.team_name asc";
+            teamList = jdbcTemplate.query(sql, new Object[] { city }, new TeamRowMapper());
+        } else {
+            sql += " And t.agencyId=? order by t.team_name asc";
+            teamList = jdbcTemplate.query(sql, new Object[] { city, loginUser.getUserId() }, new TeamRowMapper());
+        }
+
+        session.setAttribute("teamList", teamList);
+    }
+
+    private static final class TeamRowMapper implements RowMapper<Team> {
+        public Team mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Team team = new Team();
+            team.setTeamName(rs.getString("TEAM_NAME"));
+            team.setTeamId(rs.getString("op_TEAM_ID"));
+            return team;
+        }
+    }
+    public void loadTeamNamesOp(HttpSession session, String userType, String cityId) {
+        UserForm loginUser = (UserForm) session.getAttribute("userLogin");
+
+        if (userType.equals("4")) {
+            userType = "3";
+        } else if (userType.equals("6")) {
+            userType = "5";
+        } else if (userType.equals("11")) {
+            userType = "2,3,5";
+        }
+
+        String sql = "SELECT t.TEAM_NAME, t.TEAM_ID, u.user_name FROM op_TEAMS t, USER_MASTER u WHERE t.sup_user_id = u.user_id and u.user_type in (?) and t.CITY_ID = ?";
+        if (loginUser.getUserType().equals("1")) {
+            sql += " order by t.team_name asc";
+        } else {
+            sql += " And t.agencyId = ? order by t.team_name asc";
+        }
+
+        List<Team> teamList = loginUser.getUserType().equals("1")
+                ? jdbcTemplate.query(sql, new Object[]{userType, cityId}, new TeamRowMapper())
+                : jdbcTemplate.query(sql, new Object[]{userType, cityId, loginUser.getUserId()}, new TeamRowMapper());
+
+        session.setAttribute("teamList", teamList);
+        session.removeAttribute("supList1");
+        session.removeAttribute("supList2");
+        session.removeAttribute("promoList1");
+        session.removeAttribute("promoList2");
+    }
+
+    private static final class TeamRowMapper implements RowMapper<Team> {
+        public Team mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Team team = new Team();
+            team.setTeamName(rs.getString("TEAM_NAME"));
+            team.setTeamId(rs.getString("TEAM_ID"));
+            team.setUserName(rs.getString("user_name"));
+            return team;
+        }
+    }
