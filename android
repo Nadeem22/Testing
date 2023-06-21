@@ -11,3 +11,31 @@
             return null;
         }
     }
+ public String addlogin_details(UserForm user) {
+        try {
+            String selectUserNameQuery = "SELECT user_name FROM user_login_details WHERE userid = ?";
+            String userName = jdbcTemplate.queryForObject(selectUserNameQuery, new Object[]{user.getUserId()}, String.class);
+
+            if (userName != null) {
+                String selectBlockedStatusQuery = "SELECT blocked FROM user_login_details WHERE userid = ?";
+                Integer blocked = jdbcTemplate.queryForObject(selectBlockedStatusQuery, new Object[]{user.getUserId()}, Integer.class);
+
+                if (blocked != null) {
+                    if (blocked == 0) {
+                        String updateLastLoginDateQuery = "UPDATE user_login_details SET last_login_date = date(date_add(now(), INTERVAL 330 MINUTE)) WHERE userid = ?";
+                        jdbcTemplate.update(updateLastLoginDateQuery, user.getUserId());
+                        return null; // Equivalent to your initial implementation where status remains null if the user is not blocked
+                    } else if (blocked == 1) {
+                        System.out.println("expired");
+                        return "expired";
+                    } else if (blocked == 2) {
+                        System.out.println("blocked by admin");
+                        return "blocked";
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
