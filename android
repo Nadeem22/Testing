@@ -1,0 +1,13 @@
+ public String smsGenHisDate() {
+        String selectQuery = "SELECT event_date FROM sms_history ORDER BY history_id DESC LIMIT 1";
+
+        try {
+            Timestamp generatedDate = jdbcTemplate.queryForObject(selectQuery, new SingleColumnRowMapper<>());
+
+            // Convert Timestamp to String
+            return generatedDate.toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
