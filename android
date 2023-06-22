@@ -539,3 +539,20 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return "-1";
         }
     }
+ public String getReasonForRejectionOfUserImage(String userId) {
+        String sql = "SELECT remark FROM profile_image_status WHERE user_Id = ? AND isRejected = 'Y'";
+
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{userId}, new RowMapper<String>() {
+                @Override
+                public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return rs.getString("remark");
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
