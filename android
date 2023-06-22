@@ -673,3 +673,21 @@ public boolean isHorlicksAvailable(String state) {
             return false;
         }
     }
+ public JSONArray getKissanSubBrands(String brandId) {
+        String sql = "SELECT id, name FROM nonhulbrands WHERE brand_id = ?";
+
+        try {
+            return new JSONArray(jdbcTemplate.query(sql, new Object[]{brandId}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("ketchupId", rs.getString("id"));
+                    jsonObject.put("ketchup", rs.getString("name"));
+                    return jsonObject;
+                }
+            }));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
