@@ -219,3 +219,16 @@ public int getRemainingDays(String userId) {
         
         return kycTries;
     }
+ public String getRetakeFlag(String userId) {
+        String retakeFlag = "";
+        try {
+            String sql = "SELECT retakeKyc FROM user_master WHERE user_id = ?";
+            String result = jdbcTemplate.queryForObject(sql, new Object[]{userId}, String.class);
+            if (result != null) {
+                retakeFlag = result;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return retakeFlag;
+    }
