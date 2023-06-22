@@ -581,3 +581,28 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return 0; // return 0 in case of any other exception
         }
     }
+  public Flag getFlag(String flagName) {
+        String sql = "SELECT * FROM flag WHERE flag_name = ?";
+
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{flagName}, new FlagRowMapper());
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return new Flag(); // return empty Flag object if no rows are found
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Flag(); // return empty Flag object in case of any other exception
+        }
+    }
+
+    private static class FlagRowMapper implements RowMapper<Flag> {
+
+        @Override
+        public Flag mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Flag flagDetails = new Flag();
+            flagDetails.setFlag_id(rs.getInt("flag_id"));
+            flagDetails.setFlag_value(rs.getFloat("flag_value"));
+            flagDetails.setDescription(rs.getString("description"));
+            flagDetails.setDate(rs.getDate("date").toString());
+            return flagDetails;
+        }
+    }
