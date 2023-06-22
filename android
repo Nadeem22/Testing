@@ -739,3 +739,25 @@ public boolean isHorlicksAvailable(String state) {
             return new JSONArray();
         }
     }
+ public JSONArray getSurveyOptions(int qId) {
+        if (qId <= 0) {
+            return new JSONArray();
+        }
+
+        String sql = "SELECT option_id, option_title FROM question_options WHERE q_id = ?";
+
+        try {
+            return new JSONArray(jdbcTemplate.query(sql, new Object[]{qId}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("id", rs.getInt("option_id"));
+                    jsonObject.put("value", rs.getString("option_title"));
+                    return jsonObject;
+                }
+            }));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
