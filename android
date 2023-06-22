@@ -953,3 +953,26 @@ public JSONObject getUserKycList(String userId) {
         }
         return array;
     }
+public JSONObject getUserVaccinationList(String userId) {
+        String sql = "SELECT trackId, user_id, vaccination_status, vaccination_cert, DATE_FORMAT(submit_time, '%Y-%m-%d %H:%i:%s') as submit_time"
+                   + " FROM vaccination_details"
+                   + " WHERE user_id = ?";
+
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{userId}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("trackId", rs.getString("trackId"));
+                    jsonObject.put("userId", rs.getString("user_id"));
+                    jsonObject.put("status", rs.getString("vaccination_status"));
+                    jsonObject.put("cert", rs.getString("vaccination_cert"));
+                    jsonObject.put("submitTime", rs.getString("submit_time"));
+                    return jsonObject;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
