@@ -342,3 +342,37 @@ public int getDemoImageCount(String brandId) {
         }
         return 0;
     }
+public JSONArray getBrandsByTeamId(UserForm user, int semFlag) {
+        String sql;
+        JSONArray jsonArray = new JSONArray();
+        // Your logic to build the SQL statement
+        // ...
+
+        jsonArray = jdbcTemplate.query(sql, new RowMapper<JSONObject>() {
+            @Override
+            public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bId", rs.getString(1));
+                jsonObject.put("bNm", rs.getString(2));
+                jsonObject.put("NPc", rs.getInt(3));
+                jsonObject.put("NSc", rs.getInt(4));
+                jsonObject.put("NSp", rs.getInt(5));
+                jsonObject.put("N3c", rs.getInt(6));
+                jsonObject.put("N4c", rs.getInt(7));
+                jsonObject.put("N5c", rs.getInt(8));
+                jsonObject.put("hasVideo", rs.getInt(9));
+                jsonObject.put("hasAudio", rs.getInt(10));
+                jsonObject.put("startTime", rs.getInt(11));
+                jsonObject.put("endTime", rs.getInt(12));
+                String surId = rs.getString(13) != null ? rs.getString(13) : "";
+                jsonObject.put("surId", surId);
+                jsonObject.put("survey", getQIds(surId));
+                jsonObject.put("images", getDemoImageCount(rs.getString(1)));
+                jsonObject.put("popup", getBrandIncentiveFlag(rs.getString(1)));
+                jsonObject.put("isNonH2h", rs.getInt("isNonH2h"));
+
+                return jsonObject;
+            }
+        });
+        return jsonArray;
+    }
