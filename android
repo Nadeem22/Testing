@@ -148,3 +148,19 @@ public boolean kycCheck(String userId) {
 
         return false;
     }
+ public int getMaxKYCTries(String configName) {
+        int maxTries = 0;
+
+        try {
+            String sql = "SELECT config_value FROM configdata WHERE config_name = ?";
+            Integer configValue = jdbcTemplate.queryForObject(sql, new Object[]{configName}, Integer.class);
+            
+            if (configValue != null) {
+                maxTries = configValue;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return maxTries;
+    }
