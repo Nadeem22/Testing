@@ -479,3 +479,12 @@ public int getSupTeamId(int promoterUserId) {
 
     // ... Other methods and the TRData class
 }
+ public String getBatchNo() {
+        String sql = "SELECT batch_no FROM zipdial_batchdetails ORDER BY generated_date DESC LIMIT 1";
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
