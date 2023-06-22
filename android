@@ -761,3 +761,28 @@ public boolean isHorlicksAvailable(String state) {
             return new JSONArray();
         }
     }
+ public String loadMohullaSupervisors(int mpromoterId) {
+
+        String sql = "SELECT USER_ID, FIRST_NAME FROM USER_MASTER WHERE (DISABLED = 'N' OR DISABLED IS NULL) AND " +
+                "USER_TYPE IN (5) AND USER_ID IN (SELECT DISTINCT SUP_USER_ID FROM H2H_TEAMS where team_id = " +
+                "(select parent_user_id from user_master where user_id = ?))";
+
+        try {
+            List<Supervisor> supervisorList = jdbcTemplate.query(sql, new Object[]{mpromoterId}, new RowMapper<Supervisor>() {
+                @Override
+                public Supervisor mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    Supervisor sup = new Supervisor();
+                    sup.setUserId(rs.getString("USER_ID"));
+                    sup.setUserName(rs.getString("FIRST_NAME"));
+                    return sup;
+                }
+            });
+
+            Gson gson = new GsonBuilder().serializeNulls().create();
+            return gson.toJson(supervisorList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
