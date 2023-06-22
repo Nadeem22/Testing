@@ -182,3 +182,40 @@ public boolean checkCutoff(String userId) {
         
         return flag;
     }
+public int getRemainingDays(String userId) {
+        int daysLeft = 0;
+
+        try {
+            String sql = "SELECT DATEDIFF(DATE(cutOffDate), DATE(NOW())) AS daysLeft FROM user_master WHERE user_id = ?";
+            
+            Integer days = jdbcTemplate.queryForObject(sql, new Object[]{userId}, Integer.class);
+            
+            if (days != null) {
+                if (days >= 0) {
+                    daysLeft = days + 1;
+                } else {
+                    daysLeft = 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return daysLeft;
+    } public int getKycCount(String userId) {
+        int kycTries = 0;
+
+        try {
+            String sql = "SELECT kyc_try FROM user_master WHERE user_Id = ?";
+            
+            Integer result = jdbcTemplate.queryForObject(sql, new Object[]{userId}, Integer.class);
+            
+            if (result != null) {
+                kycTries = result;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return kycTries;
+    }
