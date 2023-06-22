@@ -95,3 +95,24 @@ public boolean loginRestiction(String userId) {
         }
         return loginFlag;
     }
+public boolean kycCheck(String userId) {
+        int agencyId = 0;
+        int teamId = 0;
+        int userType = 0;
+
+        try {
+            String query = "SELECT agencyid, parent_user_id, user_type FROM user_master WHERE user_id = ?";
+
+            Map<String, Object> result = jdbcTemplate.queryForMap(query, userId);
+
+            agencyId = (Integer) result.get("agencyid");
+            teamId = (Integer) result.get("parent_user_id");
+            userType = (Integer) result.get("user_type");
+
+            return checkkycflag(agencyId, teamId, userId, userType);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
