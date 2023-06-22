@@ -488,3 +488,12 @@ public int getSupTeamId(int promoterUserId) {
             return "";
         }
     }
+ public String getBatchNo() {
+        String sql = "SELECT batch_no FROM brand_batchdetails ORDER BY generated_date DESC LIMIT 1";
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
