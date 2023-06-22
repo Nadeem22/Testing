@@ -838,3 +838,21 @@ public String loadMohullaSupervisors(int mpromoterId) {
             return sup;
         }
     }
+ public int checkPhoneNoExists(String userId) {
+        String sql = "SELECT (CASE WHEN (acStatus='Y' AND icStatus='Y' AND pbStatus='Y' AND GovtIdStatus ='Y' AND unStatus = 'Y') THEN '0' " +
+                "WHEN ((first_name IS NOT NULL AND mobile IS NOT NULL) AND (account_num IS NULL OR ifsc_code IS NULL)) THEN '2' " +
+                "WHEN (first_name IS NOT NULL AND mobile IS NOT NULL AND account_num IS NOT NULL AND ifsc_code IS NOT NULL " +
+                "AND unStatus = 'P' AND acStatus='P' AND icStatus='P' AND (kycpb.image_path IS NOT NULL AND pbStatus='P') AND (kyc.image_path IS NOT NULL AND GovtIdStatus='P')) THEN '0' " +
+                "WHEN (first_name IS NOT NULL AND mobile IS NOT NULL AND account_num IS NOT NULL AND ifsc_code IS NOT NULL " +
+                "AND unStatus = 'N' OR acStatus='N' OR icStatus='N' OR pbStatus='N' OR kycpb.image_path IS NULL OR GovtIdStatus='N' OR kyc.image_path IS NULL) THEN '2' ELSE '1' END) AS status " +
+                "FROM user_mobile um LEFT JOIN kycphototable kyc ON kyc.userId = um.user_id AND kyc.phototype_Id = 852 " +
+                "LEFT JOIN kycphototable kycpb ON kycpb.userId = um.user_id AND kycpb.phototype_Id = 851 WHERE user_id=?";
+
+        try {
+            Integer result = jdbcTemplate.queryForObject(sql, new Object[]{userId}, Integer.class);
+            return (result != null) ? result : 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 1;
+        }
+    }
