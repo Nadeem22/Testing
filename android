@@ -896,3 +896,60 @@ public JSONObject getUserKycList(String userId) {
             return null;
         }
     }
+ public JSONArray getOjtDetails(String userId) {
+        String sql = "SELECT ojt.date, ht.team_id, team_name, city_name, state_name, user_name, field_data_name"
+                + " FROM ojt_details ojt"
+                + " INNER JOIN h2h_teams ht ON ht.team_id = ojt.team_id"
+                + " INNER JOIN city_master ct ON ct.city_id = ojt.city_id"
+                + " INNER JOIN state_master st ON st.state_id = ojt.state_id"
+                + " INNER JOIN user_master um ON um.user_id = ht.agencyId"
+                + " INNER JOIN brands br ON br.field_data_id = ojt.brand_id"
+                + " WHERE ojt.user_id = ? AND YEARWEEK(date) = YEARWEEK(NOW()) AND ojt.oftDone = 0";
+
+        JSONArray array = new JSONArray();
+        try {
+            List<JSONObject> results = jdbcTemplate.query(sql, new Object[]{userId}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    String date = rs.getString("date");
+                    String teamId = rs.getString("team_id");
+                    String sqlCount = "SELECT COUNT(*) FROM training_request WHERE trainer_id = ? AND start_date = ? AND status = 'Approved'";
+                    Integer count = jdbcTemplate.queryForObject(sqlCount, new Object[]{userId, date}, Integer.class);
+
+                    if (count == null || count == 0) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("date", date);
+                        jsonObject.put("agency", rs.getString("user_name"));
+                        jsonObject.put("brand", rs.getString("field_data_name"));
+                        jsonObject.put("city", rs.getString("city_name"));
+                        jsonObject.put("state", rs.getString("state_name"));
+                        jsonObject.put("teamCode", rs.getString("team_name"));
+
+                        String sqlPromoters = "SELECT user_name, first_name FROM user_master WHERE user_type = 4 AND parent_user_id = ?";
+                        List<JSONObject> promoters = jdbcTemplate.query(sqlPromoters, new Object[]{teamId}, new RowMapper<JSONObject>() {
+                            @Override
+                            public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                                JSONObject jsonObj = new JSONObject();
+                                jsonObj.put("username", rs.getString("user_name"));
+                                jsonObj.put("name", rs.getString("first_name"));
+                                return jsonObj;
+                            }
+                        });
+                        JSONArray jsonArray = new JSONArray(promoters);
+                        jsonObject.put("promoters", jsonArray);
+
+                        return jsonObject;
+                    }
+                    return null;
+                }
+            });
+            for (JSONObject obj : results) {
+                if (obj != null) {
+                    array.put(obj);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return array;
+    }
