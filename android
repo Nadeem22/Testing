@@ -282,3 +282,27 @@ public int getRemainingDays(String userId) {
             return false;
         }
     }
+ public JSONArray getQIds(String surveyId) {
+        JSONArray jsonArray = new JSONArray();
+
+        if (surveyId != null && !surveyId.isEmpty()) {
+            String sql = "SELECT q_id FROM question WHERE survey_id = ? AND disabled = 0";
+
+            try {
+                List<Integer> qIds = jdbcTemplate.query(sql, new Object[]{surveyId}, new RowMapper<Integer>() {
+                    @Override
+                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return rs.getInt("q_id");
+                    }
+                });
+
+                for (Integer qId : qIds) {
+                    jsonArray.put(qId);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return jsonArray;
+    }
