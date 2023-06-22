@@ -497,3 +497,20 @@ public int getSupTeamId(int promoterUserId) {
             return "";
         }
     }
+private Gson gson = new GsonBuilder().serializeNulls().create();
+ public String getFNWReasons() {
+        String sql = "select fnwr_id, reason from fnwreason where disabled = 'N'";
+
+        List<BreakdownReasonsData> brList = jdbcTemplate.query(sql, breakdownReasonsDataRowMapper());
+
+        return gson.toJson(brList);
+    }
+
+    private RowMapper<BreakdownReasonsData> breakdownReasonsDataRowMapper() {
+        return (rs, rowNum) -> {
+            BreakdownReasonsData brData = new BreakdownReasonsData();
+            brData.setBrId(rs.getInt("fnwr_id"));
+            brData.setBrReason(rs.getString("reason"));
+            return brData;
+        };
+    }
