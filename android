@@ -709,3 +709,33 @@ public boolean isHorlicksAvailable(String state) {
             return new JSONArray();
         }
     }
+ public JSONArray getSurveyQuestions(String surveyId) {
+        if (surveyId == null || surveyId.isEmpty()) {
+            return new JSONArray();
+        }
+
+        String sql = "SELECT q_id, q_title, input_type, textfieldtype, mandatory FROM question WHERE survey_id IN (?) AND disabled = 0";
+
+        try {
+            return new JSONArray(jdbcTemplate.query(sql, new Object[]{surveyId}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("id", rs.getInt("q_id"));
+                    jsonObject.put("title", rs.getString("q_title"));
+                    int inputType = rs.getInt("input_type");
+                    jsonObject.put("type", inputType);
+                    jsonObject.put("ttype", inputType == 0 ? rs.getInt("textfieldtype") : 0);
+                    jsonObject.put("mand", rs.getInt("mandatory"));
+                    jsonObject.put("tlen", 50);
+
+                    int qId = rs.getInt("q_id");
+                    jsonObject.put("opts", getSurveyOptions(qId)); // Assuming you adapt getSurveyOptions method similarly.
+                    return jsonObject;
+                }
+            }));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
