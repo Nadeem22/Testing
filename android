@@ -662,3 +662,14 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return "";
         }
     }
+public boolean isHorlicksAvailable(String state) {
+        String sql = "SELECT id FROM horlicks_flag WHERE state = ? AND disabled = 1";
+
+        try {
+            Integer id = jdbcTemplate.queryForObject(sql, new Object[]{state}, Integer.class);
+            return id != null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
