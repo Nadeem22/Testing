@@ -556,3 +556,16 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return null;
         }
     }
+  public boolean getGeoRestrictionCityTeam(String city, int teamId) {
+        String sql = "SELECT city_name FROM geofencing_city WHERE team_id = ?";
+
+        try {
+            jdbcTemplate.queryForObject(sql, new Object[]{teamId}, (rs, rowNum) -> rs.getString("city_name"));
+            return true; // return true if a row is found
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return false; // return false if no row is found
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // return false in case of any other exception
+        }
+    }
