@@ -271,3 +271,14 @@ public int getRemainingDays(String userId) {
         }
         return jsonArray;
     }
+ public boolean optTeamCheck(UserForm user) {
+        String sql = "SELECT op_team_id FROM op_team WHERE op_team_id = ?";
+        
+        try {
+            Integer opTeamId = jdbcTemplate.queryForObject(sql, new Object[]{user.getTeam()}, Integer.class);
+            return opTeamId != null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
