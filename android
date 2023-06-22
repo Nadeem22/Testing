@@ -232,3 +232,42 @@ public int getRemainingDays(String userId) {
         }
         return retakeFlag;
     }
+ public JSONArray getAllBrands(UserForm user) {
+        String sql = "SELECT DISTINCT a.field_data_id, a.Field_Data_Name, a.no_of_primaryCalls, a.no_of_secondaryCalls, a.no_of_sampling, a.no_of_terCalls, a.no_of_qatCalls,"
+                + "a.no_of_qunCalls, a.has_Video, a.has_Audio, a.start_hour, a.end_hour, s.survey_id, a.isNonH2h "
+                + "FROM (SELECT b.field_data_id, b.Field_Data_Name, b.no_of_primaryCalls, b.no_of_secondaryCalls, b.no_of_sampling, b.no_of_terCalls, b.no_of_qatCalls, "
+                + "b.no_of_qunCalls, b.has_Video, b.has_Audio, b.start_hour, b.end_hour, b.isNonH2h FROM brands b WHERE b.disabled='N') AS a "
+                + "LEFT JOIN survey s ON s.brandId = a.Field_data_id AND s.agencyId= ? AND s.user_type = 3 AND s.disabled = 0";
+
+        JSONArray jsonArray = new JSONArray();
+        try {
+            jsonArray = jdbcTemplate.query(sql, new Object[]{user.getAgencyId()}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("bId", rs.getString("field_data_id"));
+                    jsonObject.put("bNm", rs.getString("Field_Data_Name"));
+                    jsonObject.put("NPc", rs.getInt("no_of_primaryCalls"));
+                    jsonObject.put("NSc", rs.getInt("no_of_secondaryCalls"));
+                    jsonObject.put("NSp", rs.getInt("no_of_sampling"));
+                    jsonObject.put("N3c", rs.getInt("no_of_terCalls"));
+                    jsonObject.put("N4c", rs.getInt("no_of_qatCalls"));
+                    jsonObject.put("N5c", rs.getInt("no_of_qunCalls"));
+                    jsonObject.put("hasVideo", rs.getInt("has_Video"));
+                    jsonObject.put("hasAudio", rs.getInt("has_Audio"));
+                    jsonObject.put("startTime", rs.getInt("start_hour"));
+                    jsonObject.put("endTime", rs.getInt("end_hour"));
+                    String surId = rs.getString("survey_id") != null ? rs.getString("survey_id") : "";
+                    jsonObject.put("surId", surId);
+                    jsonObject.put("survey", getQIds(surId)); // Assuming getQIds method exists
+                    jsonObject.put("images", getDemoImageCount(rs.getString("field_data_id"))); // Assuming getDemoImageCount method exists
+                    jsonObject.put("popup", getBrandIncentiveFlag(rs.getString("field_data_id"))); // Assuming getBrandIncentiveFlag method exists
+                    jsonObject.put("isNonH2h", rs.getInt("isNonH2h"));
+                    return jsonObject;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonArray;
+    }
