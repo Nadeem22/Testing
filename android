@@ -116,3 +116,35 @@ public boolean kycCheck(String userId) {
             return false;
         }
     }
+ private boolean checkkycflag(int agencyId, int teamId, String userId, int userType) {
+        int kycNotRequired = 0;
+        int kycRequiredAgency = 0;
+        try {
+            if (userType == 21 || userType == 2 || userType == 3) {
+                return true;
+            } else {
+                String query1 = "SELECT id FROM kyc_flag WHERE team_id = ?";
+                List<Map<String, Object>> results1 = jdbcTemplate.queryForList(query1, teamId);
+
+                if (!results1.isEmpty()) {
+                    kycNotRequired = 1;
+                }
+
+                String query2 = "SELECT id FROM kyc_agency WHERE user_id = ?";
+                List<Map<String, Object>> results2 = jdbcTemplate.queryForList(query2, agencyId);
+
+                if (!results2.isEmpty()) {
+                    kycRequiredAgency = 1;
+                }
+
+                if (kycRequiredAgency == 0 || kycNotRequired == 1) {
+                    System.out.println("inside if condition");
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
