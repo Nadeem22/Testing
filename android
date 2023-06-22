@@ -987,3 +987,20 @@ public JSONObject getUserVaccinationList(String userId) {
             return 0;
         }
     }
+public String smsGenHisDate() {
+    String selectQuery = "SELECT event_date FROM sms_history ORDER BY history_id DESC LIMIT 1";
+
+    try {
+        // Get the date as java.sql.Date
+        java.sql.Date date = jdbcTemplate.queryForObject(selectQuery, new SingleColumnRowMapper<>(java.sql.Date.class));
+
+        // Convert java.sql.Date to Timestamp
+        Timestamp generatedDate = new Timestamp(date.getTime());
+
+        // Convert Timestamp to String
+        return generatedDate.toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        return null;
+    }
+}
