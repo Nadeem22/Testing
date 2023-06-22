@@ -376,3 +376,33 @@ public JSONArray getBrandsByTeamId(UserForm user, int semFlag) {
         });
         return jsonArray;
     }
+public int getTeamId(int supervisorUserId) {
+        String sql = "SELECT TEAM_ID FROM H2H_TEAMS WHERE SUP_USER_ID = ? LIMIT 1";
+
+        try {
+            return jdbcTemplate.query(sql, new Object[]{supervisorUserId}, new ResultSetExtractor<Integer>() {
+                @Override
+                public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+                    return rs.next() ? rs.getInt(1) : 0;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+public int getSupTeamId(int promoterUserId) {
+        String sql = "SELECT sup_user_id FROM H2H_TEAMS WHERE team_id = (select parent_user_id from user_master where user_id= ?) LIMIT 1";
+
+        try {
+            return jdbcTemplate.query(sql, new Object[]{promoterUserId}, new ResultSetExtractor<Integer>() {
+                @Override
+                public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+                    return rs.next() ? rs.getInt(1) : 0;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
