@@ -514,7 +514,7 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return brData;
         };
     }
- public String checkForValidService(int teamId) {
+  public String checkForValidService(int teamId) {
         if (teamId == 0 || teamId == -1) {
             return "-1";
         }
@@ -522,17 +522,20 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
         String sql = "SELECT SaleSeries, SampleSeries FROM smsservicevalid WHERE TeamId = ? LIMIT 1";
 
         try {
-            return jdbcTemplate.query(sql, new Object[]{teamId}, this::mapRowToString);
+            return jdbcTemplate.queryForObject(sql, new Object[]{teamId}, new RowMapper<String>() {
+                @Override
+                public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    StringBuilder res = new StringBuilder();
+                    res.append(rs.getString("SaleSeries").trim());
+                    res.append("###");
+                    res.append(rs.getString("SampleSeries").trim());
+                    return res.toString();
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return "-1";
         } catch (Exception e) {
             e.printStackTrace();
             return "-1";
         }
-    }
-
-    private String mapRowToString(ResultSet rs, int rowNum) throws SQLException {
-        StringBuilder res = new StringBuilder();
-        res.append(rs.getString("SaleSeries").trim());
-        res.append("###");
-        res.append(rs.getString("SampleSeries").trim());
-        return res.toString();
     }
