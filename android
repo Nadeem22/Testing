@@ -39,3 +39,59 @@
         }
         return null;
     }
+public boolean loginRestiction(String userId) {
+        boolean loginFlag = false;
+
+        try {
+            String sql1 = "SELECT curdate() AS current_date, DATE(us.submit_time) AS submit_time, um.cutoffdate, us.audit_date "
+                    + "FROM user_mobile us INNER JOIN user_master um ON us.user_id = um.user_id WHERE um.user_Id = ?";
+
+            String sql = "SELECT um.user_id, us.user_name, um.trackId, um.first_name, um.mobile, um.account_num, um.acStatus, um.ifsc_code,"
+                    + " um.icStatus, kb.image_path AS passbook_path, um.pbStatus, um.GovtIdStatus, um.unStatus, kb1.image_path AS govtId_path, ct.city_name, "
+                    + "(SELECT team_name FROM h2h_teams WHERE team_id=us.parent_user_id AND sup_user_id != 0) AS team_name, "
+                    + "(SELECT user_name FROM user_master WHERE user_id = us.agencyId) AS Agency, DATE(um.submit_time) AS submit_date, "
+                    + "DATE(us.cutoffDate) AS cutoff_date "
+                    + "FROM user_mobile um INNER JOIN kycPhotoTable kb ON kb.userId = um.user_id AND kb.phototype_ID = 851 "
+                    + "INNER JOIN kycPhotoTable kb1 ON kb1.userId = um.user_id AND kb1.phototype_ID = 852 "
+                    + "INNER JOIN user_master us ON us.user_id = um.user_id INNER JOIN city_master ct ON ct.city_id = us.city "
+                    + "WHERE (unStatus != 'Y' AND acStatus != 'Y' AND icStatus != 'Y' AND pbStatus != 'Y' AND GovtIdStatus != 'Y' AND "
+                    + "um.account_num IS NOT NULL AND um.ifsc_code IS NOT NULL) AND us.parent_user_id NOT IN (SELECT team_id FROM kyc_flag) "
+                    + "AND us.user_type IN (4) AND um.user_id = ?";
+
+            Map<String, Object> userData = jdbcTemplate.queryForMap(sql, userId);
+
+            if (!userData.isEmpty()) {
+                System.out.println(sql);
+                Map<String, Object> datesData = jdbcTemplate.queryForMap(sql1, userId);
+
+                Date submitTime = (Date) datesData.get("submit_time");
+                Date cutoffDate = (Date) datesData.get("cutoffdate");
+                Date currentDate = (Date) datesData.get("current_date");
+                String auditDate = (String) datesData.get("audit_date");
+                String acStatus = (String) userData.get("acStatus");
+                String icStatus = (String) userData.get("icStatus");
+                String pbStatus = (String) userData.get("pbStatus");
+                String govtIdStatus = (String) userData.get("GovtIdStatus");
+                String unStatus = (String) userData.get("unStatus");
+
+                if (auditDate == null) {
+                    loginFlag = !(submitTime.compareTo(cutoffDate) == 0 || submitTime.compareTo(cutoffDate) < 0);
+                } else if (("N".equals(acStatus) || "N".equals(icStatus) || "N".equals(pbStatus)
+                        || "N".equals(govtIdStatus) || "N".equals(unStatus)) && auditDate != null) {
+                    loginFlag = !(currentDate.compareTo(cutoffDate) == 0 || currentDate.compareTo(cutoffDate) < 0);
+                } else if (("P".equals(acStatus) && "P".equals(icStatus) && "P".equals(pbStatus)
+                        && "P".equals(govtIdStatus) && "P".equals(unStatus)) && auditDate != null) {
+                    loginFlag = !(submitTime.compareTo(cutoffDate) == 0 || submitTime.compareTo(cutoffDate) < 0);
+                }
+            } else {
+                Map<String, Object> datesData = jdbcTemplate.queryForMap(sql1, userId);
+                Date currentDate = (Date) datesData.get("current_date");
+                Date cutoffDate = (Date) datesData.get("cutoffdate");
+                loginFlag = !(currentDate.compareTo(cutoffDate) == 0 || currentDate.compareTo(cutoffDate) < 0);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return loginFlag;
+    }
