@@ -856,3 +856,43 @@ public String loadMohullaSupervisors(int mpromoterId) {
             return 1;
         }
     }
+public JSONObject getUserKycList(String userId) {
+        String sql = "SELECT first_name, mobile, account_num, ifsc_code, kp1.image_path AS passbookImage, kp2.image_path AS GovtIdImage, "
+                + "(SELECT remarks FROM kyc_remarks WHERE r_id=acRemarks) AS acRemarks, acStatus, "
+                + "(SELECT remarks FROM kyc_remarks WHERE r_id=icRemarks) AS icRemarks, icStatus, "
+                + "(SELECT remarks FROM kyc_remarks WHERE r_id=pbRemarks) AS pbRemarks, pbStatus, "
+                + "(SELECT remarks FROM kyc_remarks WHERE r_id=GovtIdRemarks) AS GovtIdRemarks, GovtIdStatus, "
+                + "(SELECT remarks FROM kyc_remarks WHERE r_id=unRemarks) AS unRemarks, unStatus "
+                + "FROM user_mobile um LEFT JOIN kycPhotoTable kp1 ON kp1.userId = um.user_id AND kp1.phototype_id = 851 "
+                + "LEFT JOIN kycPhotoTable kp2 ON kp2.userId = um.user_id AND kp2.phototype_id = 852 "
+                + "WHERE um.user_id=?";
+
+        try {
+            JSONObject jsonObject = jdbcTemplate.queryForObject(sql, new Object[]{userId}, new RowMapper<JSONObject>() {
+                @Override
+                public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    JSONObject json = new JSONObject();
+                    json.put("name", rs.getString("first_name"));
+                    json.put("mobile", rs.getString("mobile"));
+                    json.put("accountNum", rs.getString("account_num"));
+                    json.put("ifsc", rs.getString("ifsc_code"));
+                    
+                    // Populate other fields similarly...
+                    // Example:
+                    if (rs.getString("account_num") != null) {
+                        json.put("accountNumR", rs.getString("acRemarks"));
+                    } else {
+                        json.put("accountNumR", "");
+                    }
+                    
+                    // ... continue populating fields
+                    
+                    return json;
+                }
+            });
+            return jsonObject;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
