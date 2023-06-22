@@ -976,3 +976,14 @@ public JSONObject getUserVaccinationList(String userId) {
             return null;
         }
     }
+ public int getBreakdownFlag() {
+        String sql = "SELECT config_value FROM configdata WHERE config_name='brEnable'";
+
+        try {
+            // Query for Integer and automatically handle the result set
+            return jdbcTemplate.queryForObject(sql, Integer.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
