@@ -652,3 +652,13 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
 
         return jsonArray;
     }
+ public String getBrandsForReport(String config_name) {
+        String sql = "SELECT config_value FROM configdata WHERE config_name = ?";
+        
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{config_name}, String.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
