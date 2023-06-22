@@ -569,3 +569,15 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return false; // return false in case of any other exception
         }
     }
+ public float getFlagValue(String flagName) {
+        String sql = "SELECT flag_value FROM flag WHERE flag_name = ?";
+
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{flagName}, (rs, rowNum) -> rs.getFloat("flag_value"));
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return 0; // return 0 if no rows are found
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // return 0 in case of any other exception
+        }
+    }
