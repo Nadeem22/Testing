@@ -306,3 +306,39 @@ public int getRemainingDays(String userId) {
 
         return jsonArray;
     }
+public int getDemoImageCount(String brandId) {
+        String sql = "SELECT demo_image_count FROM brand_demo_config WHERE brand_id = ?";
+
+        try {
+            return jdbcTemplate.query(sql, new Object[]{brandId}, new ResultSetExtractor<Integer>() {
+                @Override
+                public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+                    if (rs.next()) {
+                        return rs.getInt("demo_image_count");
+                    }
+                    return 2; // default is 2 images beforeImage and afterImage so returning 2
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 2; // default is 2 images beforeImage and afterImage so returning 2
+    }
+ public int getBrandIncentiveFlag(String brandId) {
+        String sql = "SELECT brand_id FROM brand_incentive_config WHERE brand_id = ?";
+
+        try {
+            return jdbcTemplate.query(sql, new Object[]{brandId}, new ResultSetExtractor<Integer>() {
+                @Override
+                public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+                    if (rs.next()) {
+                        return 1;
+                    }
+                    return 0;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
