@@ -406,3 +406,76 @@ public int getSupTeamId(int promoterUserId) {
             return 0;
         }
     }
+ public JSONObject getTeamPhotoLatLong(int supId, String trackId) {
+        String dt = (trackId == null) ? new SimpleDateFormat("yyyyMM").format(new Date()) : trackId.substring(0, 6);
+        String sql = "SELECT tft.lattitude, tft.longitude FROM track_fieldphoto_table tft WHERE "
+                + "tft.track_id = (SELECT max(track_id) FROM h2h_main WHERE userId = ? AND track_id LIKE ? LIMIT 1) AND phototype_id = 262";
+
+        try {
+            return jdbcTemplate.query(sql, new Object[]{supId, dt + "%"}, new ResultSetExtractor<JSONObject>() {
+                @Override
+                public JSONObject extractData(ResultSet rs) throws SQLException, DataAccessException {
+                    JSONObject json = new JSONObject();
+                    if (rs.next()) {
+                        json.put("sup_lat", rs.getString("lattitude"));
+                        json.put("sup_lng", rs.getString("longitude"));
+                        json.put("sup_id", supId);
+                    }
+                    return json;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+ public String getPromoByTeamId(int teamId) {
+        String sql = "SELECT user_id, user_name FROM user_master WHERE parent_user_id = ? AND disabled = 'N' AND user_type in (4,6)";
+
+        try {
+            List<PromotersList> pList = jdbcTemplate.query(sql, new Object[]{teamId}, new RowMapper<PromotersList>() {
+                @Override
+                public PromotersList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    PromotersList pros = new PromotersList();
+                    pros.setPrId(rs.getInt("user_id"));
+                    pros.setPrName(rs.getString("user_name"));
+                    return pros;
+                }
+            });
+
+            Gson gson = new Gson();
+            String res = gson.toJson(pList);
+            return res.replace('\\', '\u0000');
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    // ... Other methods and the PromotersList class
+}
+ public String getTrainingByTeam(int teamId) {
+        String trSql = "SELECT training_id, training_addr, start_date FROM training WHERE DATE(start_date) BETWEEN DATE_ADD(DATE(DATE_ADD(NOW(), INTERVAL 330 MINUTE)), INTERVAL -7 DAY) AND DATE(DATE_ADD(NOW(), INTERVAL 330 MINUTE)) AND team = ? AND status != 'Completed'";
+
+        try {
+            List<TRData> trngList = jdbcTemplate.query(trSql, new Object[]{teamId}, new RowMapper<TRData>() {
+                @Override
+                public TRData mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    TRData trData = new TRData();
+                    trData.setTrngID(rs.getInt("training_id"));
+                    trData.setTrngAddress(rs.getString("training_addr"));
+                    trData.setTrngStartDt(rs.getString("start_date"));
+                    return trData;
+                }
+            });
+
+            Gson gson = new GsonBuilder().serializeNulls().create();
+            return gson.toJson(trngList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    // ... Other methods and the TRData class
+}
