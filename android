@@ -606,3 +606,49 @@ private Gson gson = new GsonBuilder().serializeNulls().create();
             return flagDetails;
         }
     }
+ public JSONArray getcrtInfoList(int userId) {
+        JSONArray jsonArray = new JSONArray();
+
+        // Update training_request
+        String sqlUpdate = "UPDATE training_request SET end_date=DATE_ADD(start_date,INTERVAL 1 DAY) WHERE trainer_id = ?";
+        jdbcTemplate.update(sqlUpdate, userId);
+
+        // Fetch the required data
+        String sql1 = "SELECT tr.crt_no,tr.trainer_name,tr.brand," +
+                "(select Field_Data_Name from brands where Field_Data_ID =tr.brand) as brand_name," +
+                "(select state_name from state_master where state_id = tr.state) as state," +
+                "(select city_name from city_master where city_id = tr.city) as city," +
+                "tr.start_date,tr.end_date," +
+                "(select group_concat(content_file_path) from content_upload where brand = tr.brand and rsa_id = tr.rsa_id) as content_path" +
+                " FROM training_request tr left join brands b on b.Field_data_id=tr.brand" +
+                " WHERE trainer_id= ? AND training_status='Yet to happen' and status = 'Approved'";
+
+        jsonArray = jdbcTemplate.query(sql1, new Object[]{userId}, new RowMapper<JSONObject>() {
+            @Override
+            public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("crtNumber", rs.getString("crt_no"));
+                jsonObject.put("trainer", rs.getString("trainer_name"));
+                jsonObject.put("brandId", rs.getInt("brand"));
+                jsonObject.put("brand", rs.getString("brand_name"));
+                jsonObject.put("state", rs.getString("state"));
+                jsonObject.put("city", rs.getString("city"));
+                jsonObject.put("startDate", rs.getString("start_date"));
+                jsonObject.put("endDate", rs.getString("end_date"));
+
+                String content = rs.getString("content_path");
+                JSONArray contentArray = new JSONArray();
+                if (content != null) {
+                    String[] contentPaths = content.split(",");
+                    for (String contentPath : contentPaths) {
+                        contentArray.put(contentPath);
+                    }
+                }
+                jsonObject.put("content", contentArray);
+
+                return jsonObject;
+            }
+        });
+
+        return jsonArray;
+    }
