@@ -1117,3 +1117,53 @@ public boolean loginRestriction(String userId) {
         }
         return loginFlag.get();
     }
+public JSONArray getBrandsByTeamId(UserForm user, int semFlag) {
+    JSONArray jsonArray = new JSONArray();
+    String sql;
+    if (semFlag == 1) {
+        sql = "select b.field_data_id,b.Field_Data_Name,b.no_of_primaryCalls,b.no_of_secondaryCalls,b.no_of_sampling, "
+                + "b.no_of_terCalls,b.no_of_qatCalls,b.no_of_qunCalls,b.has_Video,b.has_Audio,b.start_hour,b.end_hour, b.isNonH2h "
+                + "from brands b where b.field_data_id in (21111, 22222) and b.disabled='N'";
+    } else {
+        // Your original SQL code here.
+        // ...
+    }
+
+    // Change here: get the list of JSONObjects from the query
+    List<JSONObject> list = jdbcTemplate.query(sql, new RowMapper<JSONObject>() {
+        @Override
+        public JSONObject mapRow(ResultSet rs, int rowNum) throws SQLException {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("bId", rs.getString(1));
+                jsonObject.put("bNm", rs.getString(2));
+                jsonObject.put("NPc", rs.getInt(3));
+                jsonObject.put("NSc", rs.getInt(4));
+                jsonObject.put("NSp", rs.getInt(5));
+                jsonObject.put("N3c", rs.getInt(6));
+                jsonObject.put("N4c", rs.getInt(7));
+                jsonObject.put("N5c", rs.getInt(8));
+                jsonObject.put("hasVideo", rs.getInt(9));
+                jsonObject.put("hasAudio", rs.getInt(10));
+                jsonObject.put("startTime", rs.getInt(11));
+                jsonObject.put("endTime", rs.getInt(12));
+                String surId = rs.getString(13) != null ? rs.getString(13) : "";
+                jsonObject.put("surId", surId);
+                jsonObject.put("survey", getQIds(surId));
+                jsonObject.put("images", getDemoImageCount(rs.getString(1)));
+                jsonObject.put("popup", getBrandIncentiveFlag(rs.getString(1)));
+                jsonObject.put("isNonH2h", rs.getInt("isNonH2h"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return jsonObject;
+        }
+    });
+
+    // Iterate through the list and add each JSONObject to the JSONArray.
+    for (JSONObject jsonObject : list) {
+        jsonArray.put(jsonObject);
+    }
+
+    return jsonArray;
+}
