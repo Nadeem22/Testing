@@ -1062,3 +1062,58 @@ public String smsGenHisDate() {
         return loginFlag;
     }
 }
+public boolean loginRestriction(String userId) {
+        AtomicBoolean loginFlag = new AtomicBoolean(false);
+
+        String sql1 = "query1";
+        String sql2 = "query2";
+
+        try {
+            Boolean hasData = jdbcTemplate.queryForObject(sql2, new Object[]{userId}, Boolean.class);
+
+            if (Boolean.TRUE.equals(hasData)) {
+                jdbcTemplate.query(sql1, new Object[]{userId}, new RowCallbackHandler() {
+                    @Override
+                    public void processRow(ResultSet rs1) throws SQLException {
+                        if (rs1.getString("audit_date") == null) {
+                            if (rs1.getDate("submit_time").compareTo(rs1.getDate("cutoffdate")) <= 0) {
+                                loginFlag.set(false);
+                            } else {
+                                loginFlag.set(true);
+                            }
+                        } else if ((rs1.getString("acStatus").equals("N") || rs1.getString("icStatus").equals("N")
+                                || rs1.getString("pbStatus").equals("N") || rs1.getString("GovtIdStatus").equals("N")
+                                || rs1.getString("unStatus").equals("N")) && rs1.getString("audit_date") != null) {
+                            if (rs1.getDate("current date").compareTo(rs1.getDate("cutoffdate")) <= 0) {
+                                loginFlag.set(false);
+                            } else {
+                                loginFlag.set(true);
+                            }
+                        } else if ((rs1.getString("acStatus").equals("P") && rs1.getString("icStatus").equals("P")
+                                && rs1.getString("pbStatus").equals("P") && rs1.getString("GovtIdStatus").equals("P")
+                                && rs1.getString("unStatus").equals("P")) && rs1.getString("audit_date") != null) {
+                            if (rs1.getDate("submit_time").compareTo(rs1.getDate("cutoffdate")) <= 0) {
+                                loginFlag.set(false);
+                            } else {
+                                loginFlag.set(true);
+                            }
+                        }
+                    }
+                });
+            } else {
+                jdbcTemplate.query(sql1, new Object[]{userId}, new RowCallbackHandler() {
+                    @Override
+                    public void processRow(ResultSet rs1) throws SQLException {
+                        if (rs1.getDate("current date").compareTo(rs1.getDate("cutoffdate")) <= 0) {
+                            loginFlag.set(false);
+                        } else {
+                            loginFlag.set(true);
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return loginFlag.get();
+    }
