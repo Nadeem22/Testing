@@ -1,0 +1,92 @@
+ public UserForm authenticate(UserForm user) {
+        try {
+            String sql = "select apk_version as APKVersion, apk_path as APKPath from hul_apk order by apk_version desc limit 1";
+            List<ApkData> apkDataList = jdbcTemplate.query(sql, new ApkDataRowMapper());
+
+            int latestApkVer = 0;
+            String apkPath = "";
+            if (!apkDataList.isEmpty()) {
+                ApkData apkData = apkDataList.get(0);
+                latestApkVer = apkData.getApkVersion();
+                apkPath = apkData.getApkPath();
+            }
+
+            sql = "SELECT USER_ID, USER_NAME, USER_PASSWORD, USER_TYPE, DISABLED, CITY, " +
+                    "(select state_name from state_master where state_id = state) as STATE, " +
+                    "isLoggedIn, agencyId, imei, parent_user_id, isPana, apk_upgrade_req, insAppReq, " +
+                    "Image_path, is_aws, dash_report, img_res, img_qly, geo_fence_req " +
+                    "FROM USER_MASTER WHERE USER_PASSWORD = ? AND USER_NAME = ? ";
+            List<UserForm> users = jdbcTemplate.query(sql, new Object[]{user.getUserPassword(), user.getUserName()}, new UserFormRowMapper());
+
+            if (users.isEmpty()) {
+                sql = "SELECT USER_ID, USER_NAME, USER_PASSWORD, USER_TYPE, DISABLED, CITY, " +
+                        "(select state_name from h2hsoc_schema.state_master where state_id = state) as STATE, " +
+                        "isLoggedIn, agencyId, imei, parent_user_id, isPana, apk_upgrade_req, insAppReq, " +
+                        "Image_path, is_aws, dash_report, img_res, img_qly, geo_fence_req, spoc " +
+                        "FROM h2hsoc_schema.USER_MASTER WHERE USER_PASSWORD = ? AND USER_NAME = ? ";
+                users = jdbcTemplate.query(sql, new Object[]{user.getUserPassword(), user.getUserName()}, new UserFormRowMapper());
+            }
+
+            if (!users.isEmpty()) {
+                user = users.get(0);
+                if (user.getApkUpgradeReq() == 1) {
+                    user.setApkVersion(latestApkVer);
+                    user.setApkPath(apkPath);
+                } else {
+                    user.setApkVersion(0);
+                }
+            } else {
+                sql = "select isLoggedIn from user_master where USER_NAME = ?";
+                List<String> isLoggedInList = jdbcTemplate.queryForList(sql, new Object[]{user.getUserName()}, String.class);
+
+                if (!isLoggedInList.isEmpty()) {
+                    String isLoggedIn = isLoggedInList.get(0);
+                    user.setIsLoggedIn(isLoggedIn);
+                }
+
+                setLoginTries(user.getUserId(), isLoggedInList.size() + 1, "L");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            user = null;
+        }
+
+        return user;
+    }
+
+    private static class ApkDataRowMapper implements RowMapper<ApkData> {
+        @Override
+        public ApkData mapRow(ResultSet rs, int rowNum) throws SQLException {
+            ApkData apkData = new ApkData();
+            apkData.setApkVersion(rs.getInt("APKVersion"));
+            apkData.setApkPath(rs.getString("APKPath"));
+            return apkData;
+        }
+    }
+
+    private static class UserFormRowMapper implements RowMapper<UserForm> {
+        @Override
+        public UserForm mapRow(ResultSet rs, int rowNum) throws SQLException {
+            UserForm user = new UserForm();
+            user.setUserId(rs.getString("USER_ID"));
+            user.setUserType(rs.getString("USER_TYPE"));
+            user.setDisabled(rs.getString("DISABLED"));
+            user.setCity(rs.getString("CITY"));
+            user.setState(rs.getString("STATE"));
+            user.setIsLoggedIn(rs.getString("isLoggedIn"));
+            user.setAgencyId(rs.getString("agencyId"));
+            user.setImei(rs.getString("imei"));
+            user.setTeam(rs.getInt("parent_user_id"));
+            user.setIsPana(rs.getInt("isPana"));
+            user.setUserImagePath(rs.getString("Image_path"));
+            user.setApkUpgradeReq(rs.getInt("apk_upgrade_req"));
+            user.setInsAppReq(rs.getInt("insAppReq"));
+            user.setIsAWS(rs.getInt("is_aws"));
+            user.setIsDashRpt(rs.getInt("dash_report"));
+            user.setImgRes(rs.getInt("img_res"));
+            user.setImgQly(rs.getInt("img_qly"));
+            user.setGeoFenceReq(rs.getInt("geo_fence_req"));
+            user.setSpoc(rs.getString("spoc"));
+            return user;
+        }
+    }
