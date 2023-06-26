@@ -113,4 +113,80 @@ public class UserDao {
         return user;
     }
 }
+package com.yourpackage.repository;
+
+import com.yourpackage.domain.UserForm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.dao.DataAccessException;
+import java.util.Map;
+
+@Repository
+public class UserRepository {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public UserForm authenticate(UserForm user) {
+        try {
+            String sql;
+
+            // Get latest APK Version and Path
+            sql = "q1"; // Replace with your actual SQL query
+            Map<String, Object> apkInfo = jdbcTemplate.queryForMap(sql);
+            int latestApkVer = (Integer) apkInfo.get("APKVersion");
+            String apkPath = (String) apkInfo.get("APKPath");
+
+            // Check user's credentials
+            sql = "q2"; // Replace with your actual SQL query
+            Map<String, Object> userInfo = jdbcTemplate.queryForMap(sql, user.getUserPassword(), user.getUserName());
+
+            // Process user's credentials
+            if (userInfo != null) {
+                user.setUserId((String) userInfo.get("USER_ID"));
+                user.setUserType((String) userInfo.get("USER_TYPE"));
+                // ... (set other fields similar to original method)
+
+                if ((Integer) userInfo.get("apk_upgrade_req") == 1) {
+                    user.setApkVersion(latestApkVer);
+                    user.setApkPath(apkPath);
+                } else {
+                    user.setApkVersion(0);
+                }
+
+                // ... (set other fields similar to original method)
+
+            } else {
+                // Attempt other logic
+                sql = "q3"; // Replace with your actual SQL query
+                userInfo = jdbcTemplate.queryForMap(sql, user.getUserPassword(), user.getUserName());
+                if (userInfo != null) {
+                    user.setSpoc((String) userInfo.get("spoc"));
+                    // ...(populate user info)
+                } else {
+                    // ... process failed login, update login tries etc.
+                    int pinCnt = 1;
+                    sql = "q4"; // Replace with your actual SQL query
+                    Map<String, Object> failedLoginInfo = jdbcTemplate.queryForMap(sql, user.getUserName());
+                    if (failedLoginInfo != null) {
+                        pinCnt = (Integer) failedLoginInfo.get("pinCount");
+                        user.setIsLoggedIn((String) failedLoginInfo.get("isLoggedIn"));
+                    }
+                    setLoginTries(user.getUserId(), (pinCnt + 1), "L");
+                }
+            }
+
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+            user = null;
+        }
+        return user;
+    }
+
+    private void setLoginTries(String userId, int pinCnt, String status) {
+        // This method can also use jdbcTemplate to update login tries, similar to the above usage.
+        // Note: It's best to have the SQL queries as constants or externalized in property files.
+    }
+}
 
