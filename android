@@ -1167,3 +1167,17 @@ public JSONArray getBrandsByTeamId(UserForm user, int semFlag) {
 
     return jsonArray;
 }
+ public void saveJSON(String trackId, String data) {
+        try {
+            String sql = "INSERT INTO track_json2(track_id, track_date, json) values(?, ?, ?)";
+            jdbcTemplate.update(sql, trackId, getSystemDate(), data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getSystemDate() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        return dtf.format(now);
+    }
