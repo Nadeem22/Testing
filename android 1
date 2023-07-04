@@ -1,0 +1,59 @@
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public String saveOnCallData(AccompanyData accompanyData) {
+    String status = "1", rejection = "0", rngDiff = "0";
+    AndroidCommon androidCmnDao = new AndroidCommon();
+
+    try {
+        if (androidCmnDao.trackMasterNotPresent(accompanyData.getTrackId())) {
+            return "Failure-Data Error";
+        }
+        int apkVer = 0;
+
+        if (accompanyData.getAccSt() == null && accompanyData.getAccId() == 1) {
+            // ... similar code logic as your original example ...
+        }
+
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus transactionStatus = transactionManager.getTransaction(def);
+
+        if (androidCmnDao.isGeoFenceReq(accompanyData.getTrackId())) {
+            // ... similar code logic as your original example ...
+        }
+
+        if (accompanyData.getBrandId() == -1) {
+            accompanyData.setBrandId(getProperBId(accompanyData.getTrackId()));
+        }
+
+        String sql = "INSERT INTO ACCOMPANY_CALL(TRACK_ID, Consumer_Mohulla_Name, ... geo_range) VALUES(?, ?, ..., ?)";
+
+        if (accompanyDataNotPresent(accompanyData)) {
+            jdbcTemplate.update(sql, new Object[]{
+                accompanyData.getTrackId(),
+                accompanyData.getcName(),
+                // ... similar parameter population as your original example ...
+                rngDiff
+            });
+
+            // ... similar code logic as your original example ...
+        } else {
+            transactionManager.rollback(transactionStatus);
+            return "Duplicate";
+        }
+
+        if (!androidCmnDao.savePhotoData(accompanyData.getPhotoDataList()).equalsIgnoreCase("success")) {
+            transactionManager.rollback(transactionStatus);
+            return "Failure";
+        }
+
+        // ... similar code logic for other operations ...
+
+        transactionManager.commit(transactionStatus);
+        return "success";
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "Failure";
+    }
+}
