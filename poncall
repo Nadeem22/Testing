@@ -1,0 +1,10 @@
+public boolean trackMasterNotPresent(String trackid) {
+        String sql = "SELECT TRACK_ID FROM TRACK_MASTER WHERE TRACK_ID = ?";
+        try {
+            String result = jdbcTemplate.queryForObject(sql, new Object[]{trackid}, String.class);
+            return result == null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
