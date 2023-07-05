@@ -8,3 +8,26 @@ public boolean trackMasterNotPresent(String trackid) {
             return true;
         }
     }
+ public void updateAccompanyData(AccompanyData accompanyData) {
+        if (accompanyData.getAccSt() == null && accompanyData.getAccId() == 1) {
+            String lastCallStTimeSql = "select start_time from h2h_main where track_id = ?";
+            String lastCallStTime = jdbcTemplate.queryForObject(
+                    lastCallStTimeSql,
+                    new Object[]{accompanyData.getTrackId()},
+                    String.class
+            );
+
+            String lctd = "00:00:00";
+
+            if (!StringUtils.isEmpty(lastCallStTime)) {
+                String currCallStTimeSql = "select TIMEDIFF(STR_TO_DATE(?, '%d-%b-%Y %H:%i:%s'), ?)";
+                lctd = jdbcTemplate.queryForObject(
+                        currCallStTimeSql,
+                        new Object[]{accompanyData.getGeoTimeStamp(), lastCallStTime},
+                        String.class
+                );
+            }
+
+            accompanyData.setLastCallDur(lctd);
+        }
+    }
