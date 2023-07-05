@@ -192,3 +192,50 @@ if (accompanyData.getAdhocVal() != null) {
         String adhocSql = "insert into promoter_on_call_adhoc(track_id, accompany_id, adhocVal) values (?, ?, ?)";
         jdbcTemplate.update(adhocSql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getAdhocVal());
     }
+ public String savePhotoData(ArrayList<PhotoData> photoDataList) {
+
+        if (photoDataList != null) {
+
+            String sql = "INSERT into track_fieldphoto_table(track_id, phototype_id, lattitude, longitude, cellLatitude, cellLongitude, "
+                    + "imageDateTime, user_id, image_path, brand_id, accompany_id, loc_accu) "
+                    + "Values(?,?,?,?,?,?,?,?,?,?,?,?)";
+
+            try {
+
+                jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement pstmt, int i) throws SQLException {
+                        PhotoData photo = photoDataList.get(i);
+                        pstmt.setString(1, photo.getTrackId());
+                        pstmt.setInt(2, photo.getPhotoTypeId());
+                        pstmt.setString(3, photo.getLatitude());
+                        pstmt.setString(4, photo.getLongitude());
+                        pstmt.setString(5, photo.getCellLatitude());
+                        pstmt.setString(6, photo.getCellLongitude());
+                        pstmt.setString(7, photo.getImageDateTime());
+                        pstmt.setInt(8, photo.getUserId());
+                        pstmt.setString(9, "images/" + photo.getTrackId() + "/" + photo.getImageName());
+                        pstmt.setInt(10, photo.getBrandId());
+                        pstmt.setInt(11, photo.getAccId());
+                        pstmt.setString(12, photo.getLocationAccuracy());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return photoDataList.size();
+                    }
+                });
+
+                addImageQuality(photoDataList);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Failure";
+            }
+
+        } else {
+            return "Failure";
+        }
+
+        return "success";
+    }
