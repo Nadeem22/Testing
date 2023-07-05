@@ -92,3 +92,18 @@ public int getSupIdByStartCall(String trackId) {
             return -1;
         }
     }
+ public boolean accompanyDataNotPresent(AccompanyData fuldata) {
+        String sql = "SELECT * FROM accompany_call WHERE TRACK_ID = ? and ACCOMPANY_ID = ? and BRAND_ID = ?";
+        try {
+            RowMapper<Object> rowMapper = (rs, rowNum) -> null; // We don't need to process the result, just check existence
+            Object result = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{fuldata.getTrackId(), fuldata.getAccId(), fuldata.getBrandId()},
+                    rowMapper
+            );
+            return result == null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
