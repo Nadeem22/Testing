@@ -388,3 +388,38 @@ public String saveAudVidData(ArrayList<PlaybackData> playbackData) {
         }
         return "success";
     }
+  public String saveSurveyData(AccompanyData accData) {
+        ArrayList<FormAnswer> survey = accData.getSurvey();
+        if (survey != null) {
+            try {
+                String surveySQL = "INSERT into survey_data(track_id, acc_id, survey_id, q_id, answers, textAnswer) "
+                        + "VALUES(?,?,?,?,?,?)";
+                
+                jdbcTemplate.batchUpdate(surveySQL, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        FormAnswer answer = survey.get(i);
+                        ps.setString(1, accData.getTrackId());
+                        ps.setInt(2, accData.getAccId());
+                        ps.setString(3, accData.getSurId());
+                        ps.setInt(4, answer.getId());
+                        if (answer.getOptionAnswers() != null) {
+                            ps.setString(5, DropDownListDao.getCSV(answer.getOptionAnswers()));
+                        } else {
+                            ps.setString(5, "");
+                        }
+                        ps.setString(6, answer.getTextAnswer());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return survey.size();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Failure";
+            }
+        }
+        return "success";
+    }
