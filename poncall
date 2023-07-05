@@ -355,3 +355,36 @@ public void updateSMSStatus(String smsCode, String trackId, int userId, int accI
 
         jdbcTemplate.update(updateQuery, trackId, userId, accId, smsCode, trackDate);
     }
+public String saveAudVidData(ArrayList<PlaybackData> playbackData) {
+        if (playbackData != null) {
+            try {
+                String playbackSQL = "INSERT into audio_video(track_id, user_id, accId, filetype, file_name, played_count, start_time, end_time, duration, ins_date) "
+                        + "VALUES(?,?,?,?,?,?,?,?,?,date_add(now(), INTERVAL 330 MINUTE))";
+                
+                jdbcTemplate.batchUpdate(playbackSQL, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        PlaybackData playback = playbackData.get(i);
+                        ps.setString(1, playback.getTrackId());
+                        ps.setInt(2, playback.getUserId());
+                        ps.setInt(3, playback.getAccId());
+                        ps.setInt(4, playback.getType());
+                        ps.setString(5, playback.getName());
+                        ps.setInt(6, playback.getPlayed());
+                        ps.setString(7, playback.getStart());
+                        ps.setString(8, playback.getEnd());
+                        ps.setString(9, playback.getDuration());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return playbackData.size();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Failure";
+            }
+        }
+        return "success";
+    }
