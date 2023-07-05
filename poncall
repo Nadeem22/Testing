@@ -43,3 +43,17 @@ public class TransactionConfig {
         return new DataSourceTransactionManager(dataSource);
     }
 }
+ public boolean isGeoFenceReq(String trackId) {
+        String sql = "select geo_fence_req from user_master where user_id = ?";
+        try {
+            Integer flag = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{trackId.substring(12)},
+                    Integer.class
+            );
+            return (flag != null && flag != 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
