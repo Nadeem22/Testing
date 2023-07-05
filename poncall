@@ -133,3 +133,12 @@ if ((accompanyData.getMachineType() != null && !accompanyData.getMachineType().i
     jdbcTemplate.update(level, accompanyData.getTrackId(), accompanyData.getAccId(),
             accompanyData.getBrandId(), levelType, type, loadType);
 }
+private String getBrandsForReport(String configName) {
+    String sql = "select config_value from configdata where config_name = ?";
+    
+    try {
+        return jdbcTemplate.queryForObject(sql, new Object[]{configName}, String.class);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "";
+    }
