@@ -160,3 +160,31 @@ private String getBrandsForReport(String configName) {
             }
         }
     }
+if (brandArray != null && !brands.equals("")) {
+        for (String brand : brandArray) {
+            if (brand.equals(configDataUtil.getDBConfigValues("Kissan_brandid"))) {
+                // Kissan ketchup or Domex user
+                if (accompanyData.getKetchupUser() == 1) {
+                    String sql = "insert into brand_type(track_id, accompany_id, brand_id, brand_type_id, brand_type_name) values (?, ?, ?, ?, ?)";
+                    jdbcTemplate.update(sql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getBrandId(), accompanyData.getKetchupId(), accompanyData.getKetchup());
+                }
+                // Not a Kissan ketchup or Domex user
+                else if (accompanyData.getKetchupUser() == 2) {
+                    String sql = "insert into brand_type(track_id, accompany_id, brand_id, brand_type_id, brand_type_name) values (?, ?, ?, ?, ?)";
+                    jdbcTemplate.update(sql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getBrandId(), 0, null);
+                }
+            }
+            if (brand.equals(configDataUtil.getDBConfigValues("Domex_brandid"))) {
+                if (accompanyData.getBrandId() == Integer.parseInt(configDataUtil.getDBConfigValues("Domex_brandid"))) {
+                    String sql = "insert into brand_type(track_id, accompany_id, brand_id, brand_type_id, brand_type_name) values (?, ?, ?, ?, ?)";
+                    jdbcTemplate.update(sql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getBrandId(), accompanyData.getDomexId(), accompanyData.getDomex());
+                }
+            }
+            if (brand.equals(configDataUtil.getDBConfigValues("CoreHorlicks_brandid"))) {
+                if (accompanyData.getBrandId() == Integer.parseInt(configDataUtil.getDBConfigValues("CoreHorlicks_brandid"))) {
+                    String sql = "insert into corehorlicks_age(track_id, accompany_id, brand_id, variant_sold, ageGroup) values (?, ?, ?, ?, ?)";
+                    jdbcTemplate.update(sql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getBrandId(), accompanyData.getVariantSold(), accompanyData.getCoreHorlicksAge());
+                }
+            }
+        }
+    }
