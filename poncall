@@ -142,3 +142,21 @@ private String getBrandsForReport(String configName) {
         e.printStackTrace();
         return "";
     }
+ if (brandArray != null) {
+        for (String brand : brandArray) {
+            if (brand.equals(configDataUtil.getDBConfigValues("Kissan_brandid"))) {
+                // kissan ketchup or Domex user
+                if (accompanyData.getKetchupUser() == 1) {
+                    String sql = "insert into brand_type(track_id, accompany_id, brand_id,brand_type_id,brand_type_name) values (?,?,?,?,?)";
+                    jdbcTemplate.update(sql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getBrandId(), accompanyData.getKetchupId(), accompanyData.getKetchup());
+                    System.out.println("kissan user----" + sql);
+                }
+                // not a kissan ketchup or Domex user
+                else if (accompanyData.getKetchupUser() == 2) {
+                    String sql = "insert into brand_type(track_id, accompany_id, brand_id,brand_type_id,brand_type_name) values (?,?,?,?,?)";
+                    jdbcTemplate.update(sql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getBrandId(), 0, null);
+                    System.out.println("not a kisaan user----" + sql);
+                }
+            }
+        }
+    }
