@@ -316,3 +316,24 @@ if (accompanyData.getAdhocVal() != null) {
         }
         return "success";
     }
+ public List<Map<String, Object>> getSMSStatus(String smsCode, String trackDate) {
+        String sql = "SELECT generated_date, validated, track_Id, acc_id, user_id, mobile_no FROM zipdial_codes WHERE sms_code = ? AND generated_date = ?";
+
+        return jdbcTemplate.query(sql, new Object[]{smsCode, trackDate}, new SMSStatusRowMapper());
+    }
+
+    private static class SMSStatusRowMapper implements RowMapper<Map<String, Object>> {
+
+        @Override
+        public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Map<String, Object> hmap = new HashMap<>();
+            String formattedGenDate = DateBean.getFormattedDateYMD(rs.getDate("generated_date")); // Assuming DateBean has such a static method
+            hmap.put("genDate", formattedGenDate);
+            hmap.put("smsStatus", rs.getString("validated"));
+            hmap.put("trackId", rs.getString("track_Id"));
+            hmap.put("accId", rs.getInt("acc_id"));
+            hmap.put("userId", rs.getInt("user_id"));
+            hmap.put("phoneNo", rs.getString("mobile_no"));
+            return hmap;
+        }
+    }
