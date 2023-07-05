@@ -337,3 +337,13 @@ if (accompanyData.getAdhocVal() != null) {
             return hmap;
         }
     }
+ public boolean checkDuplicateInThreshold(String smsCode, String trackDate) {
+        String sql = "SELECT is_validated FROM promoter_sms ps " +
+                     "INNER JOIN track_master tm ON ps.track_id = tm.track_id AND tm.track_date = DATE(?) " +
+                     "WHERE sms_code = ? AND is_validated IN ('Y', 'Y-R')";
+
+        // Query for a list of String values. If the list is not empty, it means that duplicate entries are present.
+        List<String> results = jdbcTemplate.queryForList(sql, new Object[]{trackDate, smsCode}, String.class);
+
+        return !results.isEmpty();
+    }
