@@ -188,3 +188,7 @@ if (brandArray != null && !brands.equals("")) {
             }
         }
     }
+if (accompanyData.getAdhocVal() != null) {
+        String adhocSql = "insert into promoter_on_call_adhoc(track_id, accompany_id, adhocVal) values (?, ?, ?)";
+        jdbcTemplate.update(adhocSql, accompanyData.getTrackId(), accompanyData.getAccId(), accompanyData.getAdhocVal());
+    }
