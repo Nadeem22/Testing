@@ -347,3 +347,11 @@ if (accompanyData.getAdhocVal() != null) {
 
         return !results.isEmpty();
     }
+public void updateSMSStatus(String smsCode, String trackId, int userId, int accId) {
+        String trackDate = "20" + trackId.substring(0, 2) + '-' + trackId.substring(2, 4) + '-' + trackId.substring(4, 6);
+
+        String updateQuery = "UPDATE zipdial_codes SET validated = 'Y', track_id = ?, user_id = ?, acc_id = ? " +
+                             "WHERE sms_code = ? AND DATE(generated_date) = DATE(?)";
+
+        jdbcTemplate.update(updateQuery, trackId, userId, accId, smsCode, trackDate);
+    }
