@@ -107,3 +107,29 @@ public int getSupIdByStartCall(String trackId) {
             return true;
         }
     }
+if ((accompanyData.getMachineType() != null && !accompanyData.getMachineType().isEmpty()) ||
+    (accompanyData.getUserType() != null && !accompanyData.getUserType().isEmpty())) {
+
+    String level = "insert into machine_userlevel_type (track_id, accompany_id, brand, level, type, load_type) values (?, ?, ?, ?, ?, ?)";
+
+    String levelType = null;
+    String type = null;
+    String loadType = null;
+
+    if (accompanyData.getMachineType() != null && !accompanyData.getMachineType().isEmpty()) {
+        levelType = "Machine Type";
+        type = accompanyData.getMachineType();
+        if ("Fully Automatic Machine".equals(accompanyData.getMachineType())) {
+            loadType = accompanyData.getWashingMachineType();
+        } else {
+            loadType = null;
+        }
+    } else if (accompanyData.getUserType() != null && !accompanyData.getUserType().isEmpty()) {
+        levelType = "User Type";
+        type = accompanyData.getUserType();
+        loadType = null;
+    }
+
+    jdbcTemplate.update(level, accompanyData.getTrackId(), accompanyData.getAccId(),
+            accompanyData.getBrandId(), levelType, type, loadType);
+}
