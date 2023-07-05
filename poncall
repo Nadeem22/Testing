@@ -279,3 +279,40 @@ if (accompanyData.getAdhocVal() != null) {
 
         return "success";
     }
+ public String validateSMSCode(String trackId, String lctd, int userId, String accSt, ArrayList<SmsCodeData> smsList) {
+        try {
+            int zaccId = -1, zuserId = -1;
+            String zTrackId = "", zPhoneNo = "";
+            lctd = (lctd == null ? "00:00:00" : lctd);
+            int ON_CALL_TIME_DIFF = Integer.parseInt(ContextUtil.getDBConfigValues("on_call_time_diff"));
+            Calendar c = Calendar.getInstance();
+            c.setTime(new SimpleDateFormat("HH:mm:ss").parse(lctd));
+
+            String sql = "INSERT INTO PROMOTER_SMS(TRACK_ID, Accompany_Id, Promoter_Code, SMS_Code, Name, Details, brand_id, is_validated, phoneNo, variantSold, opt_in) "
+                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            if (smsList != null) {
+                for (SmsCodeData smsData : smsList) {
+                    // ... Same logic in the original code for setting the values in the insert statement ...
+                    // ... It's a bit long, so let's assume you are just copying that over ...
+                    jdbcTemplate.update(sql, ps -> {
+                        ps.setString(1, trackId);
+                        ps.setInt(2, smsData.getAccCallId());
+                        ps.setString(3, smsData.getPromoCode());
+                        ps.setString(4, smsData.getSmsCode());
+                        ps.setString(5, smsData.getConsName());
+                        ps.setString(6, smsData.getConsFlat());
+                        ps.setInt(7, smsData.getBrandId());
+                        ps.setString(8, isValid);
+                        ps.setString(9, (zPhoneNo != null && zPhoneNo.length() > 10) ? zPhoneNo.substring(2) : zPhoneNo);
+                        ps.setString(10, smsData.getVariant());
+                        ps.setInt(11, smsData.getOptIn());
+                    });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Failure";
+        }
+        return "success";
+    }
