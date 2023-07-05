@@ -71,3 +71,24 @@ public int getSupIdByStartCall(String trackId) {
             return 0;
         }
     }
+ public int getProperBId(String tId) {
+        String brSql = "select brand from h2h_main where track_id = ?";
+        try {
+            Integer brId = jdbcTemplate.queryForObject(
+                    brSql,
+                    new Object[]{tId},
+                    Integer.class
+            );
+            
+            if (brId != null && brId > -1) {
+                System.out.println(tId + ">>>>Brand Id is:::" + brId);
+                return brId;
+            } else {
+                System.out.println(tId + ">>>>Brand Id is -1");
+                return 18;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
