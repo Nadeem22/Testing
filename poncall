@@ -57,3 +57,17 @@ public class TransactionConfig {
             return false;
         }
     }
+public int getSupIdByStartCall(String trackId) {
+        String sql = "select supervisor_id from h2h_main where track_id = ?";
+        try {
+            Integer supervisorId = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{trackId},
+                    Integer.class
+            );
+            return (supervisorId != null) ? supervisorId : 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
