@@ -239,3 +239,43 @@ if (accompanyData.getAdhocVal() != null) {
 
         return "success";
     }
+ public String addImageQuality(ArrayList<PhotoData> photoDataList) {
+
+        if (photoDataList != null) {
+
+            String sql = "INSERT into h2h_schema.oncall_imageauto(track_id, acc_id, phototype_id, dark, blur) "
+                    + "Values(?,?,?,?,?)";
+
+            try {
+
+                jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement pstmt, int i) throws SQLException {
+                        PhotoData photo = photoDataList.get(i);
+                        if ((photo.getPhotoTypeId() >= 700 && photo.getPhotoTypeId() <= 799)
+                                || (photo.getPhotoTypeId() >= 1000 && photo.getPhotoTypeId() <= 1099)) {
+                            pstmt.setString(1, photo.getTrackId());
+                            pstmt.setInt(2, photo.getAccId());
+                            pstmt.setInt(3, photo.getPhotoTypeId());
+                            pstmt.setInt(4, photo.getDark());
+                            pstmt.setInt(5, photo.getBlurry());
+                        }
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return photoDataList.size();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Failure";
+            }
+
+        } else {
+            return "Failure";
+        }
+
+        return "success";
+    }
