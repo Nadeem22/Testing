@@ -423,3 +423,13 @@ public String saveAudVidData(ArrayList<PlaybackData> playbackData) {
         }
         return "success";
     }
+public boolean accompanyDataNotPresent(AccompanyData fuldata) {
+        try {
+            String sql = "SELECT * FROM accompany_call WHERE TRACK_ID = ? AND ACCOMPANY_ID = ? AND BRAND_ID = ?";
+            Object[] params = new Object[]{fuldata.getTrackId(), fuldata.getAccId(), fuldata.getBrandId()};
+            Map<String, Object> result = jdbcTemplate.queryForMap(sql, params);
+            return result.isEmpty();
+        } catch (DataAccessException e) {
+            return true;
+        }
+    }
