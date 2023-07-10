@@ -100,4 +100,40 @@ public HashMap<String, Object> getResults(String pageName, String brands, String
 
     return result;
 }
+public void loadSupervisorNamesById(HttpSession session, String teamId, String agencyId)
+{
+	try
+	{
+		ArrayList<User> supList = new ArrayList<>();
 
+		String sql = "SELECT distinct(first_name) FROM user_master WHERE user_type in(2,3,5) AND parent_user_id in(?) AND disabled = 'N' ";
+
+		if (agencyId != null)
+		{
+			sql += " AND agencyId=?";
+			supList = (ArrayList<User>) jdbcTemplate.query(sql, new Object[]{teamId, agencyId}, new RowMapper<User>(){
+				public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+					User user = new User();
+					user.setFirstName(rs.getString("first_name"));
+					return user;
+				}
+			});
+		}
+		else {
+			supList = (ArrayList<User>) jdbcTemplate.query(sql, new Object[]{teamId}, new RowMapper<User>(){
+				public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+					User user = new User();
+					user.setFirstName(rs.getString("first_name"));
+					return user;
+				}
+			});
+		}
+
+		session.setAttribute("supervisorList", supList);
+
+	}
+	catch (DataAccessException e)
+	{
+		e.printStackTrace();
+	}
+}
