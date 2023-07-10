@@ -1,0 +1,17 @@
+public void loadSupervisorNames(HttpSession session, String agencyId) {
+    String baseSql = "SELECT distinct(first_name) FROM user_master WHERE user_type in(2,3,5) AND disabled = 'N' ";
+
+    if (agencyId != null) {
+        baseSql += " AND agencyId=" + agencyId;
+    }
+
+    baseSql += " ORDER BY first_name ASC";
+
+    List<User> supList = jdbcTemplate.query(baseSql, (rs, rowNum) -> {
+        User user = new User();
+        user.setFirstName(rs.getString("first_name"));
+        return user;
+    });
+
+    session.setAttribute("supervisorList", supList);
+}
