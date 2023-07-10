@@ -31,13 +31,6 @@ public static String getSurfBrand() {
     }
     return brandName;
 }
-In this version, we use the queryForObject method of JdbcTemplate because we are querying for a single object, not a list. The String.class passed as the third parameter informs Spring that we are expecting a single String result.
-
-As with the previous method, it's recommended to use prepared statements or parameterized queries to prevent SQL Injection attacks.
-
-The queryForObject method returns null if no data is found, so we check for null after the query and set brandName to "Surf Excel" if necessary.
-
-Also, please note that this method is marked as static, which is generally not
 
 
 
