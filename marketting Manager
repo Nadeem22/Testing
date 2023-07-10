@@ -32,5 +32,72 @@ public static String getSurfBrand() {
     return brandName;
 }
 
+public HashMap<String, Object> getResults(String pageName, String brands, String fromDate,
+                                          String toDate, String team, String supervisor, String city,
+                                          String value, String param, UserForm user) {
+    List<ReportDetails> trackList;
+    String surf;
+    HashMap<String, Object> result = new HashMap<>();
+    try {
+        surf = this.getSurfBrand();
+        String queryToUse = getFinalQuery(pageName, brands, fromDate, toDate, team, supervisor, city, user);
+        int start = configDataUtil.getReportProperties("report_start");
+        int limitValue = configDataUtil.getReportProperties(param);
 
+        if (!value.equals("0")) {
+            int values = Integer.parseInt(value);
+            queryToUse = queryToUse + "  limit " + (values * limitValue) + "," + (limitValue + 1);
+        } else {
+            queryToUse = queryToUse + " limit " + start + "," + (limitValue + 1);
+        }
+        System.out.println("userName" + user.getUserName() + " SMS Code Query :" + queryToUse);
+
+        trackList = jdbcTemplate.query(queryToUse, new RowMapper<ReportDetails>() {
+            int i = 0;
+            @Override
+            public ReportDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
+                ReportDetails track = new ReportDetails();
+                track.setId(String.valueOf(i++));
+                String trackId = rs.getString(1);
+                track.setTrackId(trackId);
+                track.setDate(rs.getString(2));
+                String brand = rs.getString(3);
+                if (brand.equalsIgnoreCase(ConstantKeys.SURFTOPLOAD)
+                        || brand.equalsIgnoreCase(ConstantKeys.SURFFRONTLOAD)) {
+                    track.setBrand(surf + " " + brand);
+                } else {
+                    track.setBrand(rs.getString(3));
+                }
+                track.setCity(rs.getString(4));
+                track.setTeam(rs.getString(5));
+                track.setModel(rs.getString(6));
+                track.setSupervisor(rs.getString(7));
+                if (rs.getString(8) != null) {
+                    track.setPromoterCode(rs.getString(8));
+                }
+                track.setSmsCode(rs.getString(9));
+                track.setIsValid(rs.getString(10));
+                track.setMobileNo((user.getUserType().equals("15")) ? rs.getString(14) : rs.getString(11));
+                track.setVariantSold(rs.getString(12));
+                track.setOptIn((rs.getInt(13) == 0) ? "N" : "Y");
+                track.setYa_trackId(rs.getString(15));
+                track.setYa_accId(rs.getString(16));
+                if (rs.getString(17) != null) {
+                    track.setBl_trackId((rs.getString(17).contains("-O")) ? "Check with Audit Team" : rs.getString(17));
+                    track.setBl_accId((rs.getString(17).contains("-O")) ? "Check with Audit Team" : rs.getString(18));
+                }
+                return track;
+            }
+        });
+
+        long totalValue = 0;
+        result.put("recordData", trackList);
+        result.put("totalcount", totalValue);
+    } catch (DataAccessException e) {
+        e.printStackTrace();
+        return null;
+    }
+
+    return result;
+}
 
